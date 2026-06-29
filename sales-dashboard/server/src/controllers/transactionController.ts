@@ -145,13 +145,25 @@ export const getCharts = async (req: Request, res: Response) => {
       ? Prisma.sql`WHERE ${Prisma.join(whereConditions, ' AND ')}` 
       : Prisma.empty;
 
-    const trendRaw = await prisma.$queryRaw<any[]>`
-      SELECT TO_CHAR(transaction_date, ${dateFormat}) as date, SUM(amount)::FLOAT as revenue
-      FROM transactions
-      ${whereClause}
-      GROUP BY DATE_TRUNC(${dateTrunc}, transaction_date), TO_CHAR(transaction_date, ${dateFormat})
-      ORDER BY DATE_TRUNC(${dateTrunc}, transaction_date) ASC
-    `;
+    let trendRaw: any[];
+
+    if (isDaily) {
+      trendRaw = await prisma.$queryRaw<any[]>`
+        SELECT TO_CHAR(transaction_date, 'YYYY-MM-DD') as date, SUM(amount)::FLOAT as revenue
+        FROM transactions
+        ${whereClause}
+        GROUP BY DATE_TRUNC('day', transaction_date), TO_CHAR(transaction_date, 'YYYY-MM-DD')
+        ORDER BY DATE_TRUNC('day', transaction_date) ASC
+      `;
+    } else {
+      trendRaw = await prisma.$queryRaw<any[]>`
+        SELECT TO_CHAR(transaction_date, 'YYYY-MM') as date, SUM(amount)::FLOAT as revenue
+        FROM transactions
+        ${whereClause}
+        GROUP BY DATE_TRUNC('month', transaction_date), TO_CHAR(transaction_date, 'YYYY-MM')
+        ORDER BY DATE_TRUNC('month', transaction_date) ASC
+      `;
+    }
 
     const revenueTrend = trendRaw.map(row => ({
       date: row.date,
