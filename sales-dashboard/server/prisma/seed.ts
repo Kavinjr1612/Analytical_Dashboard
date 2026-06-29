@@ -73,6 +73,12 @@ async function main() {
   console.log('Clearing existing transactions...');
   await prisma.transaction.deleteMany({});
   
+  console.log('Generating reusable customer pool (1,000 unique customers)...');
+  const CUSTOMER_POOL: string[] = [];
+  for (let i = 0; i < 1000; i++) {
+    CUSTOMER_POOL.push(faker.person.fullName());
+  }
+
   console.log('Generating 10,000 transaction records...');
   
   const now = new Date();
@@ -99,9 +105,11 @@ async function main() {
     // Uniform date distribution over the last 12 months
     const transactionDate = new Date(oneYearAgo.getTime() + i * step + Math.random() * step);
     
+    const customerName = faker.helpers.arrayElement(CUSTOMER_POOL);
+
     currentBatch.push({
       id: crypto.randomUUID(),
-      customerName: faker.person.fullName(),
+      customerName,
       productName,
       category,
       region,

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import prisma from '../utils/db.js';
 
 // Helper to build search/filter where clause
@@ -116,49 +117,41 @@ export const getCharts = async (req: Request, res: Response) => {
     const dateFormat = isDaily ? 'YYYY-MM-DD' : 'YYYY-MM';
     const dateTrunc = isDaily ? 'day' : 'month';
 
-    // Compile dynamic filters for Raw query
-    const queryConditions: string[] = [];
-    const queryParams: any[] = [];
+    // Compile dynamic filters for Raw query (parameterized)
+    const whereConditions: Prisma.Sql[] = [];
 
     if (category) {
-      queryParams.push(category);
-      queryConditions.push(`category = $${queryParams.length}`);
+      whereConditions.push(Prisma.sql`category = ${category}`);
     }
     if (region) {
-      queryParams.push(region);
-      queryConditions.push(`region = $${queryParams.length}`);
+      whereConditions.push(Prisma.sql`region = ${region}`);
     }
     if (startDate) {
-      queryParams.push(new Date(startDate as string));
-      queryConditions.push(`transaction_date >= $${queryParams.length}`);
+      whereConditions.push(Prisma.sql`transaction_date >= ${new Date(startDate as string)}`);
     }
     if (endDate) {
       const end = new Date(endDate as string);
       if (!String(endDate).includes('T')) {
         end.setHours(23, 59, 59, 999);
       }
-      queryParams.push(end);
-      queryConditions.push(`transaction_date <= $${queryParams.length}`);
+      whereConditions.push(Prisma.sql`transaction_date <= ${end}`);
     }
     if (search) {
       const searchString = `%${String(search).trim()}%`;
-      queryParams.push(searchString);
-      const searchIdx = queryParams.length;
-      queryConditions.push(`(customer_name ILIKE $${searchIdx} OR product_name ILIKE $${searchIdx})`);
+      whereConditions.push(Prisma.sql`(customer_name ILIKE ${searchString} OR product_name ILIKE ${searchString})`);
     }
 
-    const whereClause = queryConditions.length > 0 
-      ? `WHERE ${queryConditions.join(' AND ')}` 
-      : '';
+    const whereClause = whereConditions.length > 0 
+      ? Prisma.sql`WHERE ${Prisma.join(whereConditions, ' AND ')}` 
+      : Prisma.empty;
 
-    const trendRaw = await prisma.$queryRawUnsafe<any[]>(
-      `SELECT TO_CHAR(transaction_date, '${dateFormat}') as date, SUM(amount)::FLOAT as revenue
-       FROM transactions
-       ${whereClause}
-       GROUP BY DATE_TRUNC('${dateTrunc}', transaction_date), TO_CHAR(transaction_date, '${dateFormat}')
-       ORDER BY DATE_TRUNC('${dateTrunc}', transaction_date) ASC`,
-      ...queryParams
-    );
+    const trendRaw = await prisma.$queryRaw<any[]>`
+      SELECT TO_CHAR(transaction_date, ${dateFormat}) as date, SUM(amount)::FLOAT as revenue
+      FROM transactions
+      ${whereClause}
+      GROUP BY DATE_TRUNC(${dateTrunc}, transaction_date), TO_CHAR(transaction_date, ${dateFormat})
+      ORDER BY DATE_TRUNC(${dateTrunc}, transaction_date) ASC
+    `;
 
     const revenueTrend = trendRaw.map(row => ({
       date: row.date,
