@@ -51,4 +51,5 @@ export interface FilterParams {
   category?: string;
   region?: string;
   search?: string;
+  status?: string;
 }

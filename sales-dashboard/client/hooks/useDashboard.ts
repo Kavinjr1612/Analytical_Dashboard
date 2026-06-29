@@ -22,6 +22,7 @@ export function useDashboard() {
     category: '',
     region: '',
     search: '',
+    status: '',
   });
 
   // Search input state before debounce
@@ -146,6 +147,11 @@ export function useDashboard() {
     setPagination(prev => ({ ...prev, page: 1 }));
   }, []);
 
+  const setStatusFilter = useCallback((status: string) => {
+    setFilters(prev => ({ ...prev, status }));
+    setPagination(prev => ({ ...prev, page: 1 }));
+  }, []);
+
   const setDateRangeFilter = useCallback((startDate: string, endDate: string) => {
     setFilters(prev => ({ ...prev, startDate, endDate }));
     setPagination(prev => ({ ...prev, page: 1 }));
@@ -159,6 +165,7 @@ export function useDashboard() {
       category: '',
       region: '',
       search: '',
+      status: '',
     });
     setPagination({ page: 1, limit: 10 });
     setSorting({ sortBy: 'transactionDate', sortOrder: 'desc' });
@@ -194,6 +201,7 @@ export function useDashboard() {
     errors,
     setCategoryFilter,
     setRegionFilter,
+    setStatusFilter,
     setDateRangeFilter,
     resetFilters,
     setPage,

@@ -13,9 +13,9 @@
   --text-primary: #F5F1E8;
   --text-secondary: #B8B2A8;
   --text-muted: #7E786F;
-  --success: #C6A96B; /* Matte success gold */
-  --warning: #A88B4A; /* Amber gold */
-  --danger: #7E786F;  /* Neutral muted */
+  --success: #C6A96B;
+  --warning: #A88B4A;
+  --danger: #7E786F;
 }
 
 @theme inline {
@@ -33,12 +33,15 @@
   --color-text-muted: var(--text-muted);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
-  /* Ambient soft background radial gradients */
   background-image: 
     radial-gradient(at 0% 0%, rgba(198, 169, 107, 0.03) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(168, 139, 74, 0.02) 0px, transparent 50%);
@@ -61,11 +64,40 @@ body {
   box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.8), 0 0 15px 0 rgba(198, 169, 107, 0.02);
 }
 
-/* Subtle gold-and-white text gradient */
+/* Clickable card with cursor and stronger hover */
+.gold-card-clickable {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.6);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.gold-card-clickable:hover {
+  background-color: var(--card-hover);
+  border-color: var(--card-border-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.85), 0 0 20px 0 rgba(198, 169, 107, 0.04);
+}
+
+.gold-card-clickable:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.7);
+}
+
+/* Gold text gradient */
 .gold-text-gradient {
   background: linear-gradient(135deg, #F5F1E8 30%, #C6A96B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* Contextual row highlight for linked transactions */
+.row-highlight {
+  background-color: rgba(198, 169, 107, 0.04) !important;
+  border-left: 2px solid rgba(198, 169, 107, 0.3) !important;
 }
 
 /* Muted custom scrollbars */
@@ -87,21 +119,6 @@ body {
   background: var(--accent-gold-muted);
 }
 
-/* Custom interactive input elements */
-.gold-input {
-  background-color: #111111;
-  border: 1px solid rgba(198, 169, 107, 0.1);
-  color: var(--text-primary);
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.gold-input:focus {
-  border-color: var(--accent-gold-muted);
-  background-color: #141414;
-  box-shadow: 0 0 10px rgba(198, 169, 107, 0.03);
-}
-
 /* Charts adjustments */
 .recharts-default-tooltip {
   background-color: #141414 !important;
@@ -112,4 +129,64 @@ body {
 
 .recharts-tooltip-item {
   color: var(--text-primary) !important;
+}
+
+/* Drawer slide-in animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.drawer-slide-in {
+  animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.drawer-backdrop {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Section reveal animation */
+@keyframes revealUp {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.section-reveal {
+  animation: revealUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Active filter badge pulse */
+.active-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(198, 169, 107, 0.1);
+  color: #C6A96B;
+  border: 1px solid rgba(198, 169, 107, 0.2);
+}
+
+/* Peak dot glow on charts */
+.peak-dot {
+  filter: drop-shadow(0 0 6px rgba(198, 169, 107, 0.5));
 }

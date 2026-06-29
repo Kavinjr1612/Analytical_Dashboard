@@ -15,17 +15,17 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   isLoading,
   error
 }) => {
-  // Formatter helpers
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(val);
-  };
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
-  const formatNumber = (val: number) => {
-    return new Intl.NumberFormat('en-US').format(val);
+  const formatNumber = (val: number) =>
+    new Intl.NumberFormat('en-US').format(val);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const cardData = [
@@ -33,43 +33,49 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
       title: 'Total Revenue',
       value: summary ? formatCurrency(summary.totalRevenue) : '$0',
       icon: <DollarSign className="text-[#C6A96B]" size={18} />,
-      insight: '+12.4% vs last year',
-      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 12.4%</span>
+      insight: 'Click to view revenue trend',
+      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 12.4%</span>,
+      scrollTarget: 'section-revenue-trend',
     },
     {
       title: 'Total Orders',
       value: summary ? formatNumber(summary.totalOrders) : '0',
       icon: <ShoppingBag className="text-[#C6A96B]" size={18} />,
-      insight: '+8.2% vol. run-rate',
-      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 8.2%</span>
+      insight: 'Click to view transaction ledger',
+      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 8.2%</span>,
+      scrollTarget: 'section-transactions',
     },
     {
       title: 'Average Order Value',
       value: summary ? formatCurrency(summary.averageOrderValue) : '$0',
       icon: <TrendingUp className="text-[#C6A96B]" size={18} />,
-      insight: '+3.8% ticket average',
-      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 3.8%</span>
+      insight: 'Click to view category breakdown',
+      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 3.8%</span>,
+      scrollTarget: 'section-category-region',
     },
     {
       title: 'Total Customers',
       value: summary ? formatNumber(summary.totalCustomers) : '0',
       icon: <Users className="text-[#C6A96B]" size={18} />,
-      insight: 'Unique client base',
-      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 14.6%</span>
+      insight: 'Click to view strategic insights',
+      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 14.6%</span>,
+      scrollTarget: 'section-command-center',
     },
     {
       title: 'Top Category',
       value: summary ? summary.topSellingCategory : 'N/A',
       icon: <Tag className="text-[#C6A96B]" size={18} />,
-      insight: 'Primary sales driver',
-      trend: <span className="text-[#B8B2A8] flex items-center gap-0.5"><ArrowRight size={12} /> Leader</span>
+      insight: 'Click to view category chart',
+      trend: <span className="text-[#B8B2A8] flex items-center gap-0.5"><ArrowRight size={12} /> Leader</span>,
+      scrollTarget: 'section-category-region',
     },
     {
-      title: 'Best Performing Region',
+      title: 'Best Region',
       value: summary ? summary.bestPerformingRegion : 'N/A',
       icon: <MapPin className="text-[#C6A96B]" size={18} />,
-      insight: 'Highest regional density',
-      trend: <span className="text-[#B8B2A8] flex items-center gap-0.5"><ArrowRight size={12} /> Peak</span>
+      insight: 'Click to view region chart',
+      trend: <span className="text-[#B8B2A8] flex items-center gap-0.5"><ArrowRight size={12} /> Peak</span>,
+      scrollTarget: 'section-category-region',
     },
   ];
 
@@ -77,17 +83,18 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     return (
       <div className="gold-card p-6 mb-6 border-red-950 bg-[#141414] text-center text-red-400">
         <p className="font-semibold mb-1">Failed to load statistics</p>
-        <p className="text-xs text-text-muted">{error}</p>
+        <p className="text-xs text-[#7E786F]">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
       {cardData.map((card, index) => (
         <div
           key={index}
-          className="gold-card p-5 flex flex-col justify-between"
+          onClick={() => scrollTo(card.scrollTarget)}
+          className="gold-card-clickable p-5 flex flex-col justify-between"
         >
           {isLoading ? (
             <div className="animate-pulse space-y-3 w-full">
@@ -100,7 +107,6 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
             </div>
           ) : (
             <>
-              {/* Header Title + Icon */}
               <div className="flex justify-between items-start mb-4">
                 <span className="text-[10px] font-bold text-[#7E786F] tracking-wider uppercase">
                   {card.title}
@@ -110,14 +116,12 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
                 </div>
               </div>
               
-              {/* Metric Value */}
               <div className="mb-2">
                 <span className="text-2xl font-extrabold tracking-tight text-[#F5F1E8] break-words">
                   {card.value}
                 </span>
               </div>
 
-              {/* Supporting Micro-Insights */}
               <div className="flex items-center justify-between text-[11px] border-t border-white/5 pt-2 mt-1">
                 <span className="text-[#B8B2A8] font-medium truncate max-w-[70%]">
                   {card.insight}

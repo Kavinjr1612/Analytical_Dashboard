@@ -4,7 +4,7 @@ import prisma from '../utils/db.js';
 
 // Helper to build search/filter where clause
 const buildFilterWhere = (query: any) => {
-  const { startDate, endDate, category, region, search } = query;
+  const { startDate, endDate, category, region, search, status } = query;
   const where: any = {};
 
   if (category) {
@@ -14,6 +14,10 @@ const buildFilterWhere = (query: any) => {
   if (region) {
     where.region = String(region);
   }
+
+  if (status) {
+    where.status = String(status);
+  }
   
   if (startDate || endDate) {
     where.transactionDate = {};
@@ -22,7 +26,6 @@ const buildFilterWhere = (query: any) => {
     }
     if (endDate) {
       const end = new Date(String(endDate));
-      // If end date doesn't contain time, filter to the very end of that day
       if (!String(endDate).includes('T')) {
         end.setHours(23, 59, 59, 999);
       }

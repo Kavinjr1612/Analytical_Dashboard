@@ -22,6 +22,9 @@ interface TransactionsTableProps {
   onLimitChange: (limit: number) => void;
   isLoading: boolean;
   error: string | null;
+  highlightCategory?: string;
+  highlightRegion?: string;
+  highlightStatus?: string;
 }
 
 export const TransactionsTable: React.FC<TransactionsTableProps> = ({
@@ -35,7 +38,10 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   onPageChange,
   onLimitChange,
   isLoading,
-  error
+  error,
+  highlightCategory = '',
+  highlightRegion = '',
+  highlightStatus = '',
 }) => {
   // Determine table columns
   const columns = React.useMemo<ColumnDef<Transaction>[]>(
@@ -211,18 +217,25 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-white/5 hover:bg-[#1A1A1A] transition-colors duration-150 group"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="py-3.5 px-4 text-xs">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const tx = row.original;
+                const isHighlighted =
+                  (highlightCategory && tx.category === highlightCategory) ||
+                  (highlightRegion && tx.region === highlightRegion) ||
+                  (highlightStatus && tx.status === highlightStatus);
+                return (
+                  <tr
+                    key={row.id}
+                    className={`border-b border-white/5 hover:bg-[#1A1A1A] transition-colors duration-150 group ${isHighlighted ? 'row-highlight' : ''}`}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="py-3.5 px-4 text-xs">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
