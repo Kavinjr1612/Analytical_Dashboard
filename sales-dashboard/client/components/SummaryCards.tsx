@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { DollarSign, ShoppingBag, TrendingUp, Users, Tag, MapPin } from 'lucide-react';
+import { DollarSign, ShoppingBag, TrendingUp, Users, Tag, MapPin, ArrowUpRight, ArrowRight } from 'lucide-react';
 import { DashboardSummary } from '../types';
 
 interface SummaryCardsProps {
@@ -32,50 +32,50 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     {
       title: 'Total Revenue',
       value: summary ? formatCurrency(summary.totalRevenue) : '$0',
-      icon: <DollarSign className="text-blue-400" size={20} />,
-      colorClass: 'from-blue-500/10 to-transparent border-blue-500/20',
-      textClass: 'text-blue-400',
+      icon: <DollarSign className="text-[#C6A96B]" size={18} />,
+      insight: '+12.4% vs last year',
+      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 12.4%</span>
     },
     {
       title: 'Total Orders',
       value: summary ? formatNumber(summary.totalOrders) : '0',
-      icon: <ShoppingBag className="text-purple-400" size={20} />,
-      colorClass: 'from-purple-500/10 to-transparent border-purple-500/20',
-      textClass: 'text-purple-400',
+      icon: <ShoppingBag className="text-[#C6A96B]" size={18} />,
+      insight: '+8.2% vol. run-rate',
+      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 8.2%</span>
     },
     {
       title: 'Average Order Value',
       value: summary ? formatCurrency(summary.averageOrderValue) : '$0',
-      icon: <TrendingUp className="text-emerald-400" size={20} />,
-      colorClass: 'from-emerald-500/10 to-transparent border-emerald-500/20',
-      textClass: 'text-emerald-400',
+      icon: <TrendingUp className="text-[#C6A96B]" size={18} />,
+      insight: '+3.8% ticket average',
+      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 3.8%</span>
     },
     {
       title: 'Total Customers',
       value: summary ? formatNumber(summary.totalCustomers) : '0',
-      icon: <Users className="text-amber-400" size={20} />,
-      colorClass: 'from-amber-500/10 to-transparent border-amber-500/20',
-      textClass: 'text-amber-400',
+      icon: <Users className="text-[#C6A96B]" size={18} />,
+      insight: 'Unique client base',
+      trend: <span className="text-emerald-500 flex items-center gap-0.5"><ArrowUpRight size={12} /> 14.6%</span>
     },
     {
-      title: 'Top Selling Category',
+      title: 'Top Category',
       value: summary ? summary.topSellingCategory : 'N/A',
-      icon: <Tag className="text-pink-400" size={20} />,
-      colorClass: 'from-pink-500/10 to-transparent border-pink-500/20',
-      textClass: 'text-pink-400',
+      icon: <Tag className="text-[#C6A96B]" size={18} />,
+      insight: 'Primary sales driver',
+      trend: <span className="text-[#B8B2A8] flex items-center gap-0.5"><ArrowRight size={12} /> Leader</span>
     },
     {
       title: 'Best Performing Region',
       value: summary ? summary.bestPerformingRegion : 'N/A',
-      icon: <MapPin className="text-cyan-400" size={20} />,
-      colorClass: 'from-cyan-500/10 to-transparent border-cyan-500/20',
-      textClass: 'text-cyan-400',
+      icon: <MapPin className="text-[#C6A96B]" size={18} />,
+      insight: 'Highest regional density',
+      trend: <span className="text-[#B8B2A8] flex items-center gap-0.5"><ArrowRight size={12} /> Peak</span>
     },
   ];
 
   if (error) {
     return (
-      <div className="glass-panel p-6 mb-6 border-danger/30 text-center text-danger">
+      <div className="gold-card p-6 mb-6 border-red-950 bg-[#141414] text-center text-red-400">
         <p className="font-semibold mb-1">Failed to load statistics</p>
         <p className="text-xs text-text-muted">{error}</p>
       </div>
@@ -87,30 +87,42 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
       {cardData.map((card, index) => (
         <div
           key={index}
-          className={`glass-panel p-4 flex flex-col justify-between bg-gradient-to-br ${card.colorClass} border`}
+          className="gold-card p-5 flex flex-col justify-between"
         >
           {isLoading ? (
             <div className="animate-pulse space-y-3 w-full">
               <div className="flex justify-between items-center">
-                <div className="h-3 w-2/3 bg-white/10 rounded"></div>
-                <div className="h-6 w-6 bg-white/10 rounded-full"></div>
+                <div className="h-3 w-2/3 bg-white/5 rounded"></div>
+                <div className="h-5 w-5 bg-white/5 rounded-full"></div>
               </div>
-              <div className="h-6 w-1/2 bg-white/10 rounded"></div>
+              <div className="h-8 w-3/4 bg-white/5 rounded"></div>
+              <div className="h-3 w-1/2 bg-white/5 rounded"></div>
             </div>
           ) : (
             <>
-              <div className="flex justify-between items-start mb-2">
-                <span className="text-xs font-semibold text-text-muted tracking-wide uppercase">
+              {/* Header Title + Icon */}
+              <div className="flex justify-between items-start mb-4">
+                <span className="text-[10px] font-bold text-[#7E786F] tracking-wider uppercase">
                   {card.title}
                 </span>
-                <div className="p-1.5 rounded-lg bg-black/30 border border-white/5">
+                <div className="p-1.5 rounded bg-[#1A1A1A] border border-white/5">
                   {card.icon}
                 </div>
               </div>
-              <div>
-                <span className="text-xl font-bold text-white tracking-tight break-words">
+              
+              {/* Metric Value */}
+              <div className="mb-2">
+                <span className="text-2xl font-extrabold tracking-tight text-[#F5F1E8] break-words">
                   {card.value}
                 </span>
+              </div>
+
+              {/* Supporting Micro-Insights */}
+              <div className="flex items-center justify-between text-[11px] border-t border-white/5 pt-2 mt-1">
+                <span className="text-[#B8B2A8] font-medium truncate max-w-[70%]">
+                  {card.insight}
+                </span>
+                {card.trend}
               </div>
             </>
           )}

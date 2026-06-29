@@ -5,9 +5,9 @@ import {
   useReactTable,
   getCoreRowModel,
   flexRender,
-  createColumnHelper
+  ColumnDef
 } from '@tanstack/react-table';
-import { ChevronUp, ChevronDown, ChevronsUpDown, AlertCircle, HelpCircle } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronsUpDown, List, ArrowLeft, ArrowRight, Table } from 'lucide-react';
 import { Transaction } from '../types';
 
 interface TransactionsTableProps {
@@ -17,14 +17,12 @@ interface TransactionsTableProps {
   limit: number;
   totalPages: number;
   sorting: { sortBy: string; sortOrder: 'asc' | 'desc' };
-  onSortChange: (sort: { sortBy: string; sortOrder: 'asc' | 'desc' }) => void;
+  onSortChange: (sorting: { sortBy: string; sortOrder: 'asc' | 'desc' }) => void;
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
   isLoading: boolean;
   error: string | null;
 }
-
-const columnHelper = createColumnHelper<Transaction>();
 
 export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   transactions,
@@ -39,213 +37,187 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   isLoading,
   error
 }) => {
-  // 1. Column Definition for TanStack Table
-  const columns = React.useMemo(() => [
-    columnHelper.accessor('id', {
-      id: 'id',
-      header: 'Transaction ID',
-      cell: (info) => (
-        <span className="font-mono text-xs text-text-muted select-all hover:text-white transition" title={info.getValue()}>
-          {info.getValue().substring(0, 8)}...
-        </span>
-      ),
-    }),
-    columnHelper.accessor('customerName', {
-      id: 'customerName',
-      header: 'Customer Name',
-      cell: (info) => <span className="font-medium text-white">{info.getValue()}</span>,
-    }),
-    columnHelper.accessor('productName', {
-      id: 'productName',
-      header: 'Product Name',
-      cell: (info) => <span className="text-text-muted">{info.getValue()}</span>,
-    }),
-    columnHelper.accessor('category', {
-      id: 'category',
-      header: 'Category',
-      cell: (info) => (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-white/5 border border-white/10 text-white">
-          {info.getValue()}
-        </span>
-      ),
-    }),
-    columnHelper.accessor('region', {
-      id: 'region',
-      header: 'Region',
-      cell: (info) => (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent-blue/10 border border-accent-blue/20 text-accent-blue">
-          {info.getValue()}
-        </span>
-      ),
-    }),
-    columnHelper.accessor('amount', {
-      id: 'amount',
-      header: 'Amount',
-      cell: (info) => (
-        <span className="font-bold text-white">
-          ${Number(info.getValue()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </span>
-      ),
-    }),
-    columnHelper.accessor('status', {
-      id: 'status',
-      header: 'Status',
-      cell: (info) => {
-        const status = info.getValue();
-        let colorClass = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
-        if (status === 'Pending') colorClass = 'bg-amber-500/10 border-amber-500/20 text-amber-400';
-        if (status === 'Cancelled') colorClass = 'bg-red-500/10 border-red-500/20 text-red-400';
-        return (
-          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${colorClass}`}>
-            {status}
-          </span>
-        );
+  // Determine table columns
+  const columns = React.useMemo<ColumnDef<Transaction>[]>(
+    () => [
+      {
+        accessorKey: 'customerName',
+        header: 'Customer',
+        cell: (info) => (
+          <span className="font-bold text-[#F5F1E8]">{info.getValue() as string}</span>
+        )
       },
-    }),
-    columnHelper.accessor('transactionDate', {
-      id: 'transactionDate',
-      header: 'Transaction Date',
-      cell: (info) => {
-        const date = new Date(info.getValue());
-        return (
-          <span className="text-text-muted text-xs">
-            {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
-        );
+      {
+        accessorKey: 'productName',
+        header: 'Product',
+        cell: (info) => (
+          <span className="font-semibold text-[#B8B2A8]">{info.getValue() as string}</span>
+        )
       },
-    }),
-  ], []);
+      {
+        accessorKey: 'category',
+        header: 'Category',
+        cell: (info) => (
+          <span className="text-xs text-[#7E786F] font-medium">{info.getValue() as string}</span>
+        )
+      },
+      {
+        accessorKey: 'region',
+        header: 'Region',
+        cell: (info) => (
+          <span className="text-xs text-[#B8B2A8] font-bold">{info.getValue() as string}</span>
+        )
+      },
+      {
+        accessorKey: 'amount',
+        header: 'Amount',
+        cell: (info) => {
+          const amt = Number(info.getValue());
+          return (
+            <span className="font-bold text-[#C6A96B]">
+              ${amt.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            </span>
+          );
+        }
+      },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: (info) => {
+          const status = info.getValue() as string;
+          let badgeClass = '';
+          if (status === 'Completed') {
+            badgeClass = 'bg-[#C6A96B]/8 text-[#C6A96B] border-[#C6A96B]/15';
+          } else if (status === 'Pending') {
+            badgeClass = 'bg-[#A88B4A]/8 text-[#A88B4A] border-[#A88B4A]/15';
+          } else {
+            badgeClass = 'bg-[#7E786F]/8 text-[#7E786F] border-[#7E786F]/15';
+          }
+          return (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider border ${badgeClass}`}>
+              {status}
+            </span>
+          );
+        }
+      },
+      {
+        accessorKey: 'transactionDate',
+        header: 'Date',
+        cell: (info) => {
+          const dateStr = info.getValue() as string;
+          return (
+            <span className="text-xs text-[#7E786F]">
+              {new Date(dateStr).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })}
+            </span>
+          );
+        }
+      }
+    ],
+    []
+  );
 
-  // 2. Initialize TanStack Table instance
   const table = useReactTable({
     data: transactions,
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    manualSorting: true,
+    manualSorting: true
   });
 
-  // Sort Handler
-  const handleSort = (columnId: string) => {
-    // Avoid sorting on ID column (unnecessary since it is random UUID)
-    if (columnId === 'id') return;
-
-    if (sorting.sortBy === columnId) {
-      onSortChange({
-        sortBy: columnId,
-        sortOrder: sorting.sortOrder === 'asc' ? 'desc' : 'asc',
-      });
+  const handleSortToggle = (field: string) => {
+    if (sorting.sortBy === field) {
+      onSortChange({ sortBy: field, sortOrder: sorting.sortOrder === 'asc' ? 'desc' : 'asc' });
     } else {
-      onSortChange({
-        sortBy: columnId,
-        sortOrder: 'desc',
-      });
+      const defaultDesc = field === 'amount' || field === 'transactionDate';
+      onSortChange({ sortBy: field, sortOrder: defaultDesc ? 'desc' : 'asc' });
     }
   };
 
-  // Render Sort Icon on Table Header
-  const renderSortIcon = (columnId: string) => {
-    if (columnId === 'id') return null;
-    if (sorting.sortBy !== columnId) {
-      return <ChevronsUpDown size={14} className="text-text-muted opacity-40 ml-1.5" />;
+  const getSortIcon = (field: string) => {
+    if (sorting.sortBy !== field) {
+      return <ChevronsUpDown size={12} className="opacity-40" />;
     }
-    return sorting.sortOrder === 'asc' 
-      ? <ChevronUp size={14} className="text-accent-blue ml-1.5" /> 
-      : <ChevronDown size={14} className="text-accent-blue ml-1.5" />;
-  };
-
-  // Pagination page buttons generation
-  const pageRange = () => {
-    const range: number[] = [];
-    const maxVisible = 5;
-    
-    let start = Math.max(1, page - Math.floor(maxVisible / 2));
-    let end = Math.min(totalPages, start + maxVisible - 1);
-    
-    if (end - start + 1 < maxVisible) {
-      start = Math.max(1, end - maxVisible + 1);
-    }
-    
-    for (let i = start; i <= end; i++) {
-      range.push(i);
-    }
-    return range;
+    return sorting.sortOrder === 'desc' 
+      ? <ChevronDown size={12} className="text-[#C6A96B]" /> 
+      : <ChevronUp size={12} className="text-[#C6A96B]" />;
   };
 
   if (error) {
     return (
-      <div className="glass-panel p-8 text-center text-danger border-danger/30 flex flex-col items-center justify-center">
-        <AlertCircle size={36} className="mb-2 text-danger animate-pulse" />
-        <p className="font-semibold mb-1">Failed to load transactions table</p>
+      <div className="gold-card p-6 border-red-950 text-center text-red-400">
+        <p className="font-semibold mb-1">Failed to load transactions</p>
         <p className="text-xs text-text-muted">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="glass-panel p-4 md:p-6 flex flex-col">
-      <div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5">
-        <h3 className="text-sm font-semibold text-white">Recent Transactions</h3>
-        <span className="text-xs text-text-muted">
-          Showing {transactions.length > 0 ? (page - 1) * limit + 1 : 0}-
-          {Math.min(page * limit, totalCount)} of {totalCount.toLocaleString()} records
+    <div className="gold-card p-5 bg-[#141414]">
+      {/* Title */}
+      <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-4">
+        <div className="flex items-center gap-2">
+          <Table size={16} className="text-[#C6A96B]" />
+          <h3 className="text-sm font-semibold tracking-wider uppercase text-[#F5F1E8]">Operational Ledger</h3>
+        </div>
+        <span className="text-[10px] font-bold text-[#7E786F] tracking-wide uppercase">
+          Showing {transactions.length} of {totalCount.toLocaleString()} orders
         </span>
       </div>
 
-      {/* Table responsive viewport */}
-      <div className="overflow-x-auto min-h-[300px]">
+      {/* Responsive Table Wrapper */}
+      <div className="overflow-x-auto w-full mb-4 rounded border border-white/5">
         <table className="w-full text-left border-collapse">
           <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b border-white/10">
-                {headerGroup.headers.map((header) => (
+            <tr className="bg-[#111111] border-b border-white/5">
+              {table.getHeaderGroups()[0].headers.map((header) => {
+                const isSortable = header.column.id === 'amount' || header.column.id === 'transactionDate';
+                return (
                   <th
                     key={header.id}
-                    onClick={() => handleSort(header.id)}
-                    className={`py-3.5 px-4 text-xs font-semibold tracking-wider text-text-muted select-none uppercase ${
-                      header.id !== 'id' ? 'cursor-pointer hover:text-white transition' : ''
-                    }`}
+                    onClick={() => isSortable && handleSortToggle(header.column.id)}
+                    className={`py-3.5 px-4 text-[10px] font-bold text-[#7E786F] uppercase tracking-wider select-none ${isSortable ? 'cursor-pointer hover:text-white transition' : ''}`}
                   >
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-1.5">
                       {flexRender(header.column.columnDef.header, header.getContext())}
-                      {renderSortIcon(header.id)}
+                      {isSortable && getSortIcon(header.column.id)}
                     </div>
                   </th>
-                ))}
-              </tr>
-            ))}
+                );
+              })}
+            </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              // Pulsing loading skeletons
+              // Skeletons
               Array.from({ length: limit }).map((_, rIdx) => (
-                <tr key={rIdx} className="border-b border-white/5 last:border-b-0">
+                <tr key={rIdx} className="border-b border-white/5">
                   {columns.map((_, cIdx) => (
-                    <td key={cIdx} className="py-4 px-4">
-                      <div className="h-4 bg-white/5 rounded animate-pulse w-full"></div>
+                    <td key={cIdx} className="py-3.5 px-4 animate-pulse">
+                      <div className="h-3 w-3/4 bg-white/5 rounded"></div>
                     </td>
                   ))}
                 </tr>
               ))
             ) : transactions.length === 0 ? (
-              // Empty State
+              // Empty state
               <tr>
-                <td colSpan={columns.length} className="py-12 text-center text-text-muted">
-                  <div className="flex flex-col items-center justify-center">
-                    <HelpCircle size={32} className="mb-2 opacity-40 text-text-muted" />
-                    <p className="text-sm">No transactions found matching the selected filter criteria</p>
-                  </div>
+                <td colSpan={columns.length} className="py-12 text-center text-[#7E786F]">
+                  <List className="mx-auto mb-2.5 opacity-40" size={24} />
+                  <p className="text-xs">No records found matching current controls</p>
                 </td>
               </tr>
             ) : (
-              // Data Rows
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b border-white/5 last:border-b-0 hover:bg-white/2 transition-colors"
+                  className="border-b border-white/5 hover:bg-[#1A1A1A] transition-colors duration-150 group"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="py-3 px-4 text-sm font-medium">
+                    <td key={cell.id} className="py-3.5 px-4 text-xs">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -256,88 +228,49 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
         </table>
       </div>
 
-      {/* Pagination Bar */}
-      {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-white/5">
-          {/* Items Per Page Select */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-text-muted">Rows per page:</span>
-            <select
-              value={limit}
-              onChange={(e) => onLimitChange(Number(e.target.value))}
-              className="rounded-lg bg-black/40 border border-white/10 p-1.5 text-xs text-white outline-none cursor-pointer focus:border-accent-blue/50"
-            >
-              {[10, 25, 50, 100].map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Page numbers controls */}
-          <div className="flex items-center gap-1.5">
-            {/* Previous */}
-            <button
-              onClick={() => onPageChange(page - 1)}
-              disabled={page === 1 || isLoading}
-              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-white bg-white/5 transition disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/10 cursor-pointer"
-            >
-              Previous
-            </button>
-
-            {/* Truncated page range buttons */}
-            {pageRange()[0] > 1 && (
-              <>
-                <button
-                  onClick={() => onPageChange(1)}
-                  className={`rounded-lg w-8 h-8 flex items-center justify-center text-xs font-medium border border-white/10 text-white transition hover:bg-white/10 cursor-pointer`}
-                >
-                  1
-                </button>
-                {pageRange()[0] > 2 && <span className="text-text-muted px-1 text-xs">...</span>}
-              </>
-            )}
-
-            {pageRange().map((pNum) => (
-              <button
-                key={pNum}
-                onClick={() => onPageChange(pNum)}
-                className={`rounded-lg w-8 h-8 flex items-center justify-center text-xs font-medium border transition cursor-pointer ${
-                  page === pNum
-                    ? 'bg-accent-blue border-accent-blue text-white shadow-md shadow-accent-blue/20 font-bold'
-                    : 'border-white/10 text-white hover:bg-white/10'
-                }`}
-              >
-                {pNum}
-              </button>
+      {/* Pagination Controls */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-white/5">
+        {/* Page size drop-down */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold text-[#7E786F] uppercase tracking-wider">Page Size</span>
+          <select
+            value={limit}
+            onChange={(e) => onLimitChange(Number(e.target.value))}
+            className="rounded bg-[#111111] border border-white/5 px-2 py-1.5 text-xs text-[#F5F1E8] outline-none focus:border-[#A88B4A] cursor-pointer"
+          >
+            {[10, 20, 25, 50].map((size) => (
+              <option key={size} value={size} className="bg-[#111111]">
+                {size} Rows
+              </option>
             ))}
-
-            {pageRange()[pageRange().length - 1] < totalPages && (
-              <>
-                {pageRange()[pageRange().length - 1] < totalPages - 1 && (
-                  <span className="text-text-muted px-1 text-xs">...</span>
-                )}
-                <button
-                  onClick={() => onPageChange(totalPages)}
-                  className={`rounded-lg w-8 h-8 flex items-center justify-center text-xs font-medium border border-white/10 text-white transition hover:bg-white/10 cursor-pointer`}
-                >
-                  {totalPages}
-                </button>
-              </>
-            )}
-
-            {/* Next */}
-            <button
-              onClick={() => onPageChange(page + 1)}
-              disabled={page === totalPages || isLoading}
-              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-white bg-white/5 transition disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/10 cursor-pointer"
-            >
-              Next
-            </button>
-          </div>
+          </select>
         </div>
-      )}
+
+        {/* Navigation Buttons */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 1 || isLoading}
+            className="flex items-center gap-1.5 rounded border border-white/5 bg-[#1A1A1A] px-3.5 py-2 text-xs font-bold text-[#B8B2A8] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+          >
+            <ArrowLeft size={12} />
+            Previous
+          </button>
+          
+          <span className="text-xs text-[#B8B2A8] font-medium">
+            Page <strong className="text-[#F5F1E8]">{page}</strong> of <strong className="text-[#F5F1E8]">{totalPages}</strong>
+          </span>
+
+          <button
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages || isLoading}
+            className="flex items-center gap-1.5 rounded border border-white/5 bg-[#1A1A1A] px-3.5 py-2 text-xs font-bold text-[#B8B2A8] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+          >
+            Next
+            <ArrowRight size={12} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
