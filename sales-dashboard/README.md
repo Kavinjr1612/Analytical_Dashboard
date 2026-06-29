@@ -4,6 +4,8 @@ A high-performance, full-stack Sales Analytics Dashboard designed to visualize t
 
 Built with **Next.js (App Router)**, **Node.js/Express.js**, **PostgreSQL**, and **Prisma ORM**.
 
+![Dashboard Walkthrough](./screenshots/dashboard_walkthrough.webp)
+
 ---
 
 ## Technical Stack
