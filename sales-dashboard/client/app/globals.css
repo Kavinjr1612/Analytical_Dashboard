@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #080c14;      /* Deep obsidian navy */
-  --background-alt: #0b111e;  /* Deep blue-grey carbon */
+  --background: #0b0f19;      /* Deep obsidian slate navy */
+  --background-alt: #0e1524;  /* Deep slate carbon */
   --foreground: #f8fafc;      /* Pure cool white text */
-  --card-bg: #0f172a;         /* Carbon blue slate card */
-  --card-hover: #1e293b;
+  --card-bg: #121b2e;         /* Elevated slate card */
+  --card-hover: #1b263e;      /* Elevated hover card */
   --card-border: rgba(59, 130, 246, 0.08); /* Clean tech-blue border */
   --card-border-hover: rgba(59, 130, 246, 0.25);
   --accent-blue: #3b82f6;     /* Electric blue accent */
@@ -60,7 +60,7 @@ body {
   top: 64px;
   bottom: 0;
   width: var(--rail-width);
-  background: #080c14;
+  background: var(--background-alt);
   border-right: 1px solid rgba(255, 255, 255, 0.02);
   z-index: 40;
   display: flex;
@@ -185,30 +185,29 @@ body {
   flex-shrink: 0;
 }
 
+.shell-container {
+  width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+@media (min-width: 1024px) {
+  .shell-container {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
 .zone-inner {
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding: 0 24px;
-}
-
-@media (min-width: 1280px) {
-  .zone-inner {
-    padding: 0 32px;
-  }
 }
 
 .zone-inner-expansive {
   width: 100%;
   max-width: 100% !important;
   margin: 0;
-  padding: 0 24px;
-}
-
-@media (min-width: 1280px) {
-  .zone-inner-expansive {
-    padding: 0 32px;
-  }
 }
 
 /* Responsive: offset for nav rail on desktop */

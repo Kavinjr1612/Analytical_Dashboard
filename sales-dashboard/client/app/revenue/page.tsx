@@ -76,13 +76,8 @@ export default function RevenuePage() {
   return (
     <div className="dashboard-content flex-1 flex flex-col tab-transition">
       <section id="zone-revenue" className="dashboard-zone flex-1 flex flex-col justify-center min-h-[calc(100vh-140px)]" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-        <div className="zone-inner-expansive flex-1 flex flex-col justify-between gap-5">
-          <div className="zone-header mb-2">
-            <div className="zone-header-dot" />
-            <span className="zone-header-label">02</span>
-            <span className="zone-header-title">Revenue Intelligence Room</span>
-          </div>
-
+        <div className="zone-inner-expansive shell-container flex-1 flex flex-col justify-between gap-5">
+          
           {/* Split Column Grid */}
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch flex-1">
             {/* Left Column (62%): Revenue Visualizers (Area + Ticket comparative) */}
@@ -102,7 +97,7 @@ export default function RevenuePage() {
               {/* Specialized indicators */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* ARR */}
-                <div className="gold-card p-4 bg-[#0f172a] flex flex-col justify-between h-[105px]">
+                <div className="gold-card p-4 bg-[#121b2e] flex flex-col justify-between h-[105px]">
                   <div className="flex justify-between items-center text-[9px] font-bold text-[#64748b] uppercase tracking-wider">
                     <span>Projected ARR</span>
                     <TrendingUp size={12} className="text-[#3b82f6]" />
@@ -112,7 +107,7 @@ export default function RevenuePage() {
                 </div>
 
                 {/* MoM delta */}
-                <div className="gold-card p-4 bg-[#0f172a] flex flex-col justify-between h-[105px]">
+                <div className="gold-card p-4 bg-[#121b2e] flex flex-col justify-between h-[105px]">
                   <div className="flex justify-between items-center text-[9px] font-bold text-[#64748b] uppercase tracking-wider">
                     <span>MoM Growth Delta</span>
                     <Activity size={12} className="text-[#06b6d4]" />
@@ -124,7 +119,7 @@ export default function RevenuePage() {
                 </div>
 
                 {/* Forecast */}
-                <div className="gold-card p-4 bg-[#0f172a] flex flex-col justify-between h-[105px] sm:col-span-2">
+                <div className="gold-card p-4 bg-[#121b2e] flex flex-col justify-between h-[105px] sm:col-span-2">
                   <div className="flex justify-between items-center text-[9px] font-bold text-[#64748b] uppercase tracking-wider">
                     <span>Next-Month Predictive Forecast</span>
                     <Award size={12} className="text-[#3b82f6]" />
@@ -138,7 +133,7 @@ export default function RevenuePage() {
               </div>
 
               {/* Top Revenue Days list */}
-              <div className="gold-card p-5 bg-[#0f172a] flex-1 flex flex-col justify-between min-h-[180px]">
+              <div className="gold-card p-5 bg-[#121b2e] flex-1 flex flex-col justify-between min-h-[180px]">
                 <div>
                   <div className="flex items-center gap-2 pb-2.5 border-b border-white/5 mb-3">
                     <Calendar size={13} className="text-[#3b82f6]" />
@@ -154,7 +149,7 @@ export default function RevenuePage() {
                       <div className="text-center text-xs text-[#64748b] py-6">No dates registered</div>
                     ) : (
                       getTopRevenueDays().map((d, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-[10.5px] p-2 rounded bg-[#080c14] border border-white/2">
+                        <div key={idx} className="flex justify-between items-center text-[10.5px] p-2 rounded bg-[#0b0f19] border border-white/2">
                           <span className="text-[#f8fafc] font-bold">{d.date}</span>
                           <span className="text-[#3b82f6] font-extrabold">${d.val.toLocaleString()}</span>
                         </div>

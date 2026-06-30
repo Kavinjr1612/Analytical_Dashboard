@@ -70,7 +70,7 @@ export const NavigationRail: React.FC = () => {
       </nav>
 
       {/* Mobile: Horizontal Bar */}
-      <nav className="nav-mobile sticky top-[64px] z-45 border-b border-white/5 bg-[#0A0A0A]/95 backdrop-blur-md overflow-x-auto" aria-label="Dashboard sections mobile">
+      <nav className="nav-mobile sticky top-[64px] z-45 border-b border-white/5 bg-[#0e1524]/95 backdrop-blur-md overflow-x-auto" aria-label="Dashboard sections mobile">
         <div className="flex items-center gap-1 px-3 py-2 min-w-max">
           {SECTIONS.map((section) => {
             const isActive = pathname === section.path;
@@ -80,8 +80,8 @@ export const NavigationRail: React.FC = () => {
                 href={section.path}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-[#C6A96B]/10 text-[#C6A96B] border border-[#C6A96B]/20'
-                    : 'text-[#7E786F] hover:text-[#B8B2A8] border border-transparent'
+                    ? 'bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/20'
+                    : 'text-[#64748b] hover:text-[#94a3b8] border border-transparent'
                 }`}
               >
                 {section.icon}
@@ -93,7 +93,7 @@ export const NavigationRail: React.FC = () => {
         {/* Mobile progress bar */}
         <div className="h-[2px] bg-white/2 relative w-full">
           <div
-            className="absolute left-0 top-0 h-full bg-[#C6A96B]/30 transition-all duration-150"
+            className="absolute left-0 top-0 h-full bg-[#3b82f6]/30 transition-all duration-150"
             style={{ width: `${scrollProgress}%` }}
           />
         </div>

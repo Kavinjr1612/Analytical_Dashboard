@@ -32,13 +32,7 @@ export default function Home() {
           ZONE 1: SPLIT ARCHITECTURE OVERVIEW COCKPIT
           ═══════════════════════════════════════════ */}
       <section id="zone-overview" className="dashboard-zone flex-1 flex flex-col justify-center min-h-[calc(100vh-140px)]" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-        <div className="zone-inner flex-1 flex flex-col justify-between gap-5">
-          {/* Header */}
-          <div className="zone-header mb-2">
-            <div className="zone-header-dot" />
-            <span className="zone-header-label">01</span>
-            <span className="zone-header-title">Executive Control Board</span>
-          </div>
+        <div className="zone-inner shell-container flex-1 flex flex-col justify-between gap-5">
           
           {/* Split Column Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch flex-1">
@@ -62,7 +56,7 @@ export default function Home() {
             {/* Right Column (42%): Executive Summary Narrative & Quick Activity Logs */}
             <div className="lg:col-span-5 flex flex-col gap-5 justify-between">
               {/* Dynamic Narrative Card */}
-              <div className="gold-card p-5 bg-[#0f172a] flex-1 flex flex-col justify-between">
+              <div className="gold-card p-5 bg-[#121b2e] flex-1 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 pb-2.5 border-b border-white/5 mb-3.5">
                     <Award size={14} className="text-[#3b82f6]" />
@@ -89,7 +83,7 @@ export default function Home() {
               </div>
 
               {/* Real-time Order Stream Logs */}
-              <div className="gold-card p-5 bg-[#0f172a] h-[210px] flex flex-col">
+              <div className="gold-card p-5 bg-[#121b2e] h-[210px] flex flex-col">
                 <div className="flex items-center justify-between pb-2.5 border-b border-white/5 mb-3">
                   <div className="flex items-center gap-2">
                     <Activity size={14} className="text-[#06b6d4]" />
@@ -107,7 +101,7 @@ export default function Home() {
                     <div className="h-full flex items-center justify-center text-xs text-[#64748b]">No live streams</div>
                   ) : (
                     currentTransactions.slice(0, 3).map((t, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-[10.5px] p-2 rounded bg-[#080c14] border border-white/2 hover:border-white/5 transition">
+                      <div key={idx} className="flex justify-between items-center text-[10.5px] p-2 rounded bg-[#0b0f19] border border-white/2 hover:border-white/5 transition">
                         <div className="flex items-center gap-2">
                           <span className="text-[#f8fafc] font-bold truncate max-w-[120px]">{t.customerName}</span>
                           <span className="text-[#64748b] text-[9px] uppercase tracking-wide">({t.region})</span>

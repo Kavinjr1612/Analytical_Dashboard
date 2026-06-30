@@ -18,12 +18,8 @@ export default function TransactionsPage() {
           ZONE 5: TRANSACTION LEDGER
           ═══════════════════════════════════════════ */}
       <section id="zone-transactions" className="dashboard-zone flex-1 flex flex-col justify-center min-h-[calc(100vh-64px)]">
-        <div className="zone-inner flex-1 flex flex-col justify-between">
-          <div className="zone-header">
-            <div className="zone-header-dot" />
-            <span className="zone-header-label">05</span>
-            <span className="zone-header-title">Transaction Ledger</span>
-          </div>
+        <div className="zone-inner shell-container flex-1 flex flex-col justify-between">
+          
 
           <div className="flex-1 flex flex-col justify-center">
             <TransactionsTable

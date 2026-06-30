@@ -50,13 +50,8 @@ export default function MarketsPage() {
           ZONE 3: MARKET DOMINANCE (Split Layout)
           ═══════════════════════════════════════════ */}
       <section id="zone-markets" className="dashboard-zone flex-1 flex flex-col justify-center min-h-[calc(100vh-140px)]" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-        <div className="zone-inner flex-1 flex flex-col justify-between gap-5">
-          <div className="zone-header mb-2">
-            <div className="zone-header-dot" />
-            <span className="zone-header-label">03</span>
-            <span className="zone-header-title">Market Dominance Control</span>
-          </div>
-
+        <div className="zone-inner shell-container flex-1 flex flex-col justify-between gap-5">
+          
           {/* Split Column Grid */}
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch flex-1">
             {/* Left Column (62%): Category Bars + Region Bars + Share Pie */}
@@ -77,7 +72,7 @@ export default function MarketsPage() {
             {/* Right Column (38%): Share Matrices & HHI Index */}
             <div className="xl:col-span-4 flex flex-col gap-4 justify-between">
               {/* Market Share Concentration (HHI) */}
-              <div className="gold-card p-4.5 bg-[#0f172a] h-[110px] flex flex-col justify-between">
+              <div className="gold-card p-4.5 bg-[#121b2e] h-[110px] flex flex-col justify-between">
                 <div className="flex justify-between items-center text-[9px] font-bold text-[#64748b] uppercase tracking-wider">
                   <span>Market Concentration (HHI Index)</span>
                   <BarChart3 size={12} className="text-[#3b82f6]" />
@@ -92,7 +87,7 @@ export default function MarketsPage() {
               </div>
 
               {/* Category Contribution Table */}
-              <div className="gold-card p-4.5 bg-[#0f172a] flex-1 flex flex-col justify-between min-h-[280px]">
+              <div className="gold-card p-4.5 bg-[#121b2e] flex-1 flex flex-col justify-between min-h-[280px]">
                 <div>
                   <div className="flex items-center gap-2 pb-2.5 border-b border-white/5 mb-3">
                     <Table size={13} className="text-[#3b82f6]" />
@@ -110,7 +105,7 @@ export default function MarketsPage() {
                       categoryData.slice(0, 4).map((c, idx) => {
                         const pct = totalSalesVal > 0 ? (c.value / totalSalesVal) * 100 : 0;
                         return (
-                          <div key={idx} className="flex justify-between items-center text-[10px] p-2 rounded bg-[#080c14] border border-white/2">
+                          <div key={idx} className="flex justify-between items-center text-[10px] p-2 rounded bg-[#0b0f19] border border-white/2">
                             <span className="text-[#f8fafc] font-bold">{c.category}</span>
                             <div className="flex items-center gap-3">
                               <span className="text-[#64748b]">{pct.toFixed(1)}% share</span>

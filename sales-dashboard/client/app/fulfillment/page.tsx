@@ -51,13 +51,8 @@ export default function FulfillmentPage() {
           ZONE 4: FULFILLMENT Operations (Split Layout)
           ═══════════════════════════════════════════ */}
       <section id="zone-fulfillment" className="dashboard-zone flex-1 flex flex-col justify-center min-h-[calc(100vh-140px)]" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-        <div className="zone-inner flex-1 flex flex-col justify-between gap-5">
-          <div className="zone-header mb-2">
-            <div className="zone-header-dot" />
-            <span className="zone-header-label">04</span>
-            <span className="zone-header-title">Fulfillment & Operations Room</span>
-          </div>
-
+        <div className="zone-inner shell-container flex-1 flex flex-col justify-between gap-5">
+          
           {/* Split Column Grid */}
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch flex-1">
             {/* Left Column (62%): Pie status chart + Line backlog timeline */}
@@ -78,7 +73,7 @@ export default function FulfillmentPage() {
               {/* Specialized indicators */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* FHS Health Score */}
-                <div className="gold-card p-4.5 bg-[#0f172a] flex flex-col justify-between h-[105px]">
+                <div className="gold-card p-4.5 bg-[#121b2e] flex flex-col justify-between h-[105px]">
                   <div className="flex justify-between items-center text-[9px] font-bold text-[#64748b] uppercase tracking-wider">
                     <span>Operations Health Index</span>
                     <ShieldCheck size={12} className="text-[#3b82f6]" />
@@ -88,7 +83,7 @@ export default function FulfillmentPage() {
                 </div>
 
                 {/* Backlog Risk */}
-                <div className="gold-card p-4.5 bg-[#0f172a] flex flex-col justify-between h-[105px]">
+                <div className="gold-card p-4.5 bg-[#121b2e] flex flex-col justify-between h-[105px]">
                   <div className="flex justify-between items-center text-[9px] font-bold text-[#64748b] uppercase tracking-wider">
                     <span>SLA Backlog Risk</span>
                     <Clock size={12} className="text-[#06b6d4]" />
@@ -100,7 +95,7 @@ export default function FulfillmentPage() {
                 </div>
 
                 {/* Leakage cost */}
-                <div className="gold-card p-4.5 bg-[#0f172a] flex flex-col justify-between h-[105px] sm:col-span-2">
+                <div className="gold-card p-4.5 bg-[#121b2e] flex flex-col justify-between h-[105px] sm:col-span-2">
                   <div className="flex justify-between items-center text-[9px] font-bold text-[#64748b] uppercase tracking-wider">
                     <span>Cancellation Cost Leakage</span>
                     <XCircle size={12} className="text-red-500" />
@@ -114,7 +109,7 @@ export default function FulfillmentPage() {
               </div>
 
               {/* SLA guidelines / root causes */}
-              <div className="gold-card p-5 bg-[#0f172a] flex-1 flex flex-col justify-between min-h-[180px]">
+              <div className="gold-card p-5 bg-[#121b2e] flex-1 flex flex-col justify-between min-h-[180px]">
                 <div>
                   <div className="flex items-center gap-2 pb-2.5 border-b border-white/5 mb-3">
                     <Table size={13} className="text-[#3b82f6]" />
