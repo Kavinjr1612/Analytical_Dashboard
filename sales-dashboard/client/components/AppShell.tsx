@@ -4,6 +4,7 @@ import React from 'react';
 import { LayoutDashboard, RefreshCw } from 'lucide-react';
 import { DashboardProvider, useDashboardContext } from '../context/DashboardContext';
 import { NavigationRail } from './NavigationRail';
+import { FilterBar } from './FilterBar';
 import { ErrorBoundary } from './ErrorBoundary';
 
 const Header: React.FC = () => {
@@ -35,15 +36,38 @@ const Header: React.FC = () => {
 };
 
 const ShellContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const {
+    filters, searchVal, setSearchVal,
+    setCategoryFilter, setRegionFilter, setStatusFilter,
+    setDateRangeFilter, resetFilters, handleExport
+  } = useDashboardContext();
+
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex flex-col">
+    <div className="min-h-screen bg-[#070707] flex flex-col">
       <Header />
       <NavigationRail />
+      
+      {/* Global Filter Bar Persistent below Header */}
+      <div className="dashboard-content px-6 lg:px-8 pt-6 pb-2 bg-[#070707] sticky top-16 z-40">
+        <FilterBar
+          filters={filters}
+          searchVal={searchVal}
+          setSearchVal={setSearchVal}
+          setCategoryFilter={setCategoryFilter}
+          setRegionFilter={setRegionFilter}
+          setStatusFilter={setStatusFilter}
+          setDateRangeFilter={setDateRangeFilter}
+          resetFilters={resetFilters}
+          handleExport={handleExport}
+        />
+      </div>
+
       <div className="flex-1 flex flex-col">
         {children}
       </div>
-      <footer className="dashboard-content py-8 border-t border-white/5 text-center bg-[#0A0A0A] mt-auto">
-        <p className="text-[11px] text-[#7E786F]">
+
+      <footer className="dashboard-content py-8 border-t border-white/5 text-center bg-[#070707] mt-auto">
+        <p className="text-[11px] text-[#6B665E]">
           Sales Analytics Dashboard &copy; {new Date().getFullYear()} Auro Studios. All rights reserved.
         </p>
       </footer>

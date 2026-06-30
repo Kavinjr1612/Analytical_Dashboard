@@ -288,11 +288,11 @@ body {
 }
 
 .chart-spacious-tall {
-  min-height: calc(100vh - 180px);
+  min-height: calc(100vh - 250px);
 }
 
 .chart-spacious-medium {
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 270px);
 }
 
 /* ============================================

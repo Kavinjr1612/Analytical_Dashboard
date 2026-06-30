@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  ReferenceDot,
+  ReferenceDot, Legend
 } from 'recharts';
-import { TrendingUp, BarChart3, Compass, PieChart as PieIcon, HelpCircle, AlertCircle, ShieldCheck, Clock, XCircle } from 'lucide-react';
+import { TrendingUp, BarChart3, Compass, PieChart as PieIcon, HelpCircle, AlertCircle, ShieldCheck, Clock, XCircle, Activity, Heart } from 'lucide-react';
 import { DashboardCharts, Transaction } from '../types';
 import { DrilldownData } from './DrilldownDrawer';
 
@@ -36,25 +36,30 @@ const formatNumber = (val: number) => new Intl.NumberFormat('en-US').format(val)
 const GOLD_PALETTE: Record<string, string> = {
   Completed: '#C6A96B',
   Pending: '#A88B4A',
-  Cancelled: '#7E786F',
+  Cancelled: '#6B665E',
 };
 
 const CustomCurrencyTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#141414] border border-[#C6A96B]/15 rounded-lg p-4 shadow-2xl">
-        <p className="text-[10px] font-bold text-[#7E786F] uppercase tracking-wide mb-1">{label}</p>
-        <p className="text-sm font-bold text-[#F5F1E8]">{formatFullCurrency(payload[0].value)}</p>
-        <p className="text-[10px] text-[#B8B2A8] mt-1.5">Click to focus this period</p>
+      <div className="bg-[#0F0F0F] border border-[#C6A96B]/15 rounded-lg p-3 shadow-2xl">
+        <p className="text-[10px] font-bold text-[#6B665E] uppercase tracking-wide mb-1">{label}</p>
+        {payload.map((item: any, idx: number) => (
+          <p key={idx} className="text-xs font-bold text-[#EAE5DA] flex items-center gap-1.5 mt-0.5">
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color || '#C6A96B' }} />
+            {item.name}: {typeof item.value === 'number' && item.name.includes('AOV') ? formatFullCurrency(item.value) : formatFullCurrency(item.value)}
+          </p>
+        ))}
+        <p className="text-[9px] text-[#6B665E] mt-2">Click to drill down</p>
       </div>
     );
   }
   return null;
 };
 
-const ChartSkeleton = ({ height = 'h-[400px]' }: { height?: string }) => (
+const ChartSkeleton = ({ height = 'min-h-[400px]' }: { height?: string }) => (
   <div className={`gold-card chart-spacious animate-pulse flex flex-col justify-between ${height}`}>
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex justify-between items-center mb-6">
       <div className="h-3 w-1/3 bg-white/5 rounded"></div>
       <div className="h-4 w-4 bg-white/5 rounded-full"></div>
     </div>
@@ -63,14 +68,13 @@ const ChartSkeleton = ({ height = 'h-[400px]' }: { height?: string }) => (
       <div className="h-2/3 w-full bg-white/5 rounded-t"></div>
       <div className="h-1/2 w-full bg-white/5 rounded-t"></div>
       <div className="h-3/4 w-full bg-white/5 rounded-t"></div>
-      <div className="h-1/3 w-full bg-white/5 rounded-t"></div>
     </div>
     <div className="h-3 w-3/4 bg-white/5 rounded mt-6"></div>
   </div>
 );
 
 /* ============================================
-   1. REVENUE CHART (Zone 2 — War Room)
+   1. REVENUE WAR ROOM DUAL CHART (Zone 2)
    ============================================ */
 
 interface RevenueChartProps extends ChartInteractionProps {
@@ -87,10 +91,10 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
 
   if (error) {
     return (
-      <div className="gold-card chart-spacious chart-spacious-tall border-red-950 text-center text-red-400 flex items-center justify-center">
+      <div className="gold-card chart-spacious chart-spacious-tall border-red-950/20 text-center text-red-400 flex items-center justify-center">
         <div>
           <p className="font-semibold mb-1">Failed to load revenue data</p>
-          <p className="text-xs text-[#7E786F]">{error}</p>
+          <p className="text-xs text-[#6B665E]">{error}</p>
         </div>
       </div>
     );
@@ -101,18 +105,27 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
   const trendData = charts?.revenueTrend || [];
   const isEmpty = trendData.length === 0;
 
+  // Calculate AOV per Month dynamically from transactions for Chart 2
+  const aovTrendData = trendData.map(pt => {
+    const matchedTxs = transactions.filter(t => t.transactionDate.startsWith(pt.date));
+    const totalAmt = matchedTxs.reduce((sum, t) => sum + Number(t.amount), 0);
+    const aov = matchedTxs.length > 0 ? totalAmt / matchedTxs.length : 0;
+    return {
+      date: pt.date,
+      revenue: pt.revenue,
+      aov: Math.round(aov)
+    };
+  });
+
   const peakPoint = trendData.length > 0
     ? trendData.reduce((max, p) => p.revenue > max.revenue ? p : max, trendData[0])
-    : null;
-
-  const dipPoint = trendData.length > 0
-    ? trendData.reduce((min, p) => p.revenue < min.revenue ? p : min, trendData[0])
     : null;
 
   const getTrendInsight = () => {
     if (trendData.length === 0) return '';
     const sorted = [...trendData].sort((a, b) => b.revenue - a.revenue);
-    return `Peak: ${sorted[0].date} (${formatFullCurrency(sorted[0].revenue)}) · Dip: ${sorted[sorted.length - 1].date} (${formatFullCurrency(sorted[sorted.length - 1].revenue)})`;
+    const avgMonthly = trendData.reduce((s, p) => s + p.revenue, 0) / trendData.length;
+    return `Monthly Peak: ${sorted[0].date} (${formatFullCurrency(sorted[0].revenue)}) · Avg Monthly Revenue: ${formatFullCurrency(avgMonthly)} · Period Total: ${formatFullCurrency(trendData.reduce((s,p)=>s+p.revenue,0))}`;
   };
 
   const handleClick = (data: any) => {
@@ -120,63 +133,105 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
     const point = data.activePayload[0]?.payload;
     if (point) {
       onDateFocus(point.date);
-      const matchedTxs = transactions.filter(t => {
-        const txMonth = t.transactionDate.substring(0, 7);
-        return txMonth === point.date || t.transactionDate.startsWith(point.date);
-      });
+      const matchedTxs = transactions.filter(t => t.transactionDate.startsWith(point.date));
       const totalRev = trendData.reduce((s, p) => s + p.revenue, 0);
       onDrilldown({ type: 'trend', label: point.date, value: point.revenue, total: totalRev, transactions: matchedTxs });
     }
   };
 
   return (
-    <div className="gold-card chart-spacious chart-spacious-tall flex flex-col justify-between">
-      <div>
-        <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-6">
-          <div className="flex items-center gap-2.5">
-            <TrendingUp size={16} className="text-[#C6A96B]" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-[#F5F1E8]">Revenue Performance</h3>
-          </div>
-          <span className="text-[10px] font-bold text-[#7E786F] tracking-wide uppercase">Click any point to focus period</span>
-        </div>
-        <div className="h-[420px] w-full">
-          {isEmpty ? (
-            <div className="h-full flex flex-col items-center justify-center text-[#7E786F]">
-              <HelpCircle size={28} className="mb-3 opacity-40" />
-              <p className="text-xs">No revenue trend data available</p>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      {/* Chart 1: Revenue Area Chart */}
+      <div className="gold-card chart-spacious lg:col-span-8 flex flex-col justify-between min-h-[460px]">
+        <div>
+          <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
+            <div className="flex items-center gap-2.5">
+              <TrendingUp size={15} className="text-[#C6A96B]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Revenue Growth Trend</h3>
             </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trendData} margin={{ top: 15, right: 20, left: -15, bottom: 5 }} onClick={handleClick} style={{ cursor: 'pointer' }}>
-                <defs>
-                  <linearGradient id="trendGoldLarge" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#C6A96B" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#C6A96B" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(198,169,107,0.03)" vertical={false} />
-                <XAxis dataKey="date" stroke="#7E786F" fontSize={10} tickLine={false} axisLine={false} dy={8} />
-                <YAxis stroke="#7E786F" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} dx={-8} />
-                <Tooltip content={<CustomCurrencyTooltip />} />
-                <Area type="monotone" dataKey="revenue" stroke="#C6A96B" strokeWidth={2.5} fillOpacity={1} fill="url(#trendGoldLarge)" />
-                {peakPoint && (
-                  <ReferenceDot x={peakPoint.date} y={peakPoint.revenue} r={6} fill="#C6A96B" stroke="#0A0A0A" strokeWidth={2} className="peak-dot" />
-                )}
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
+            <span className="text-[9px] font-bold text-[#6B665E] tracking-wide uppercase bg-white/5 px-2 py-0.5 rounded">Click point to focus</span>
+          </div>
+          <div className="h-[340px] w-full">
+            {isEmpty ? (
+              <div className="h-full flex flex-col items-center justify-center text-[#6B665E]">
+                <HelpCircle size={28} className="mb-3 opacity-40" />
+                <p className="text-xs">No revenue trend data available</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData} margin={{ top: 15, right: 15, left: -20, bottom: 5 }} onClick={handleClick} style={{ cursor: 'pointer' }}>
+                  <defs>
+                    <linearGradient id="revGoldGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#C6A96B" stopOpacity={0.22} />
+                      <stop offset="95%" stopColor="#C6A96B" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(198,169,107,0.02)" vertical={false} />
+                  <XAxis dataKey="date" stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} dy={8} />
+                  <YAxis stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} dx={-5} />
+                  <Tooltip content={<CustomCurrencyTooltip />} />
+                  <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#C6A96B" strokeWidth={2} fillOpacity={1} fill="url(#revGoldGrad)" />
+                  {peakPoint && (
+                    <ReferenceDot x={peakPoint.date} y={peakPoint.revenue} r={5} fill="#C6A96B" stroke="#070707" strokeWidth={2} className="peak-dot" />
+                  )}
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+        <div className="border-t border-white/5 pt-3 mt-4 flex items-center gap-2 text-[10px] text-[#A39E93] font-semibold">
+          <AlertCircle size={12} className="text-[#C6A96B] flex-shrink-0" />
+          <span className="truncate">{isEmpty ? 'N/A' : getTrendInsight()}</span>
         </div>
       </div>
-      <div className="border-t border-white/5 pt-3 mt-4 flex items-center gap-2 text-[11px] text-[#B8B2A8] font-semibold">
-        <AlertCircle size={13} className="text-[#C6A96B] flex-shrink-0" />
-        <span className="truncate">{isEmpty ? 'N/A' : getTrendInsight()}</span>
+
+      {/* Chart 2: Revenue vs AOV (Comparative Bar Chart) */}
+      <div className="gold-card chart-spacious lg:col-span-4 flex flex-col justify-between min-h-[460px]">
+        <div>
+          <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
+            <div className="flex items-center gap-2">
+              <Activity size={14} className="text-[#A88B4A]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Revenue vs Ticket Size (AOV)</h3>
+            </div>
+          </div>
+          <div className="h-[340px] w-full">
+            {isEmpty ? (
+              <div className="h-full flex flex-col items-center justify-center text-[#6B665E]">
+                <HelpCircle size={28} className="mb-3 opacity-40" />
+                <p className="text-xs">No comparative data</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={aovTrendData} margin={{ top: 15, right: 10, left: -20, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="barGoldGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#A88B4A" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#A88B4A" stopOpacity={0.2} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.01)" vertical={false} />
+                  <XAxis dataKey="date" stroke="#6B665E" fontSize={9} tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="left" stroke="#6B665E" fontSize={9} tickLine={false} axisLine={false} tickFormatter={formatCurrency} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#C6A96B" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(v)=>`$${v}`} />
+                  <Tooltip content={<CustomCurrencyTooltip />} />
+                  <Legend verticalAlign="top" height={36} iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px', color: '#A39E93' }} />
+                  <Bar yAxisId="left" dataKey="revenue" name="Total Revenue" fill="url(#barGoldGrad)" radius={[2, 2, 0, 0]} />
+                  <Line yAxisId="right" type="monotone" dataKey="aov" name="Avg Ticket (AOV)" stroke="#C6A96B" strokeWidth={2.5} dot={{ r: 3 }} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+        <div className="text-[10px] text-[#6B665E] border-t border-white/5 pt-3 mt-4">
+          Shows alignment between volume spikes and transaction value sizes.
+        </div>
       </div>
     </div>
   );
 };
 
 /* ============================================
-   2. MARKET CHARTS (Zone 3 — Category + Region)
+   2. MARKET DOMINANCE THREE-PANEL SYSTEM (Zone 3)
    ============================================ */
 
 interface MarketChartsProps extends ChartInteractionProps {
@@ -194,38 +249,37 @@ export const MarketCharts: React.FC<MarketChartsProps> = ({
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  if (!mounted) return <div className="grid grid-cols-1 md:grid-cols-2 gap-8"><div className="chart-spacious-medium" /><div className="chart-spacious-medium" /></div>;
+  if (!mounted) return <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[400px]"></div>;
 
   if (error) {
     return (
-      <div className="gold-card chart-spacious chart-spacious-medium border-red-950 text-center text-red-400 flex items-center justify-center">
+      <div className="gold-card chart-spacious border-red-950/20 text-center text-red-400 flex items-center justify-center min-h-[400px]">
         <div>
           <p className="font-semibold mb-1">Failed to load market data</p>
-          <p className="text-xs text-[#7E786F]">{error}</p>
+          <p className="text-xs text-[#6B665E]">{error}</p>
         </div>
       </div>
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <ChartSkeleton height="chart-spacious-medium" />
-        <ChartSkeleton height="chart-spacious-medium" />
-      </div>
-    );
-  }
+  if (isLoading) return <ChartSkeleton height="min-h-[440px]" />;
 
   const categoryData = charts?.salesByCategory || [];
   const regionData = charts?.salesByRegion || [];
+  const totalSalesVal = categoryData.reduce((s, c) => s + c.value, 0);
+
+  const categoryPieData = categoryData.map(c => ({
+    name: c.category,
+    value: c.value,
+    percent: totalSalesVal > 0 ? (c.value / totalSalesVal) * 100 : 0
+  }));
 
   const handleCategoryBarClick = (data: any) => {
     if (!data) return;
-    const cat = data.category;
+    const cat = data.category || data.name;
     onCategoryClick(activeCategory === cat ? '' : cat);
     const matchedTxs = transactions.filter(t => t.category === cat);
-    const totalVal = categoryData.reduce((s, c) => s + c.value, 0);
-    onDrilldown({ type: 'category', label: cat, value: data.value, total: totalVal, transactions: matchedTxs });
+    onDrilldown({ type: 'category', label: cat, value: data.value, total: totalSalesVal, transactions: matchedTxs });
   };
 
   const handleRegionBarClick = (data: any) => {
@@ -240,94 +294,140 @@ export const MarketCharts: React.FC<MarketChartsProps> = ({
   const getCategoryInsight = () => {
     if (categoryData.length === 0) return '';
     const sorted = [...categoryData].sort((a, b) => b.value - a.value);
-    return `Leader: ${sorted[0].category} (${formatFullCurrency(sorted[0].value)}) · Lowest: ${sorted[sorted.length - 1].category}`;
+    return `Lead Category: ${sorted[0].category} (${formatFullCurrency(sorted[0].value)})`;
   };
 
   const getRegionInsight = () => {
     if (regionData.length === 0) return '';
     const sorted = [...regionData].sort((a, b) => b.value - a.value);
-    return `Strongest: ${sorted[0].region} (${formatFullCurrency(sorted[0].value)}) · Weakest: ${sorted[sorted.length - 1].region}`;
+    return `Lead Region: ${sorted[0].region} (${formatFullCurrency(sorted[0].value)})`;
   };
 
+  const CHART_COLORS = ['#C6A96B', '#D9C18A', '#A88B4A', '#806830', '#54441E'];
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {/* Category Performance */}
-      <div className="gold-card chart-spacious chart-spacious-medium flex flex-col justify-between">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
+      {/* Panel 1: Category Bars */}
+      <div className="gold-card chart-spacious xl:col-span-4 flex flex-col justify-between min-h-[440px]">
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
-            <div className="flex items-center gap-2.5">
-              <BarChart3 size={16} className="text-[#C6A96B]" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[#F5F1E8]">Category Performance</h3>
+            <div className="flex items-center gap-2">
+              <BarChart3 size={15} className="text-[#C6A96B]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Category Volumes</h3>
             </div>
             {activeCategory && <span className="active-filter-badge">{activeCategory} ✕</span>}
           </div>
-          <div className="h-[320px] w-full">
+          <div className="h-[300px] w-full">
             {categoryData.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#7E786F]">
+              <div className="h-full flex flex-col items-center justify-center text-[#6B665E]">
                 <HelpCircle size={24} className="mb-2 opacity-40" /><p className="text-xs">No category data</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                <BarChart data={categoryData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="catGoldZ3" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="catBarGoldGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#C6A96B" stopOpacity={0.8} />
                       <stop offset="95%" stopColor="#C6A96B" stopOpacity={0.2} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(198,169,107,0.03)" vertical={false} />
-                  <XAxis dataKey="category" stroke="#7E786F" fontSize={10} tickLine={false} axisLine={false} dy={8} />
-                  <YAxis stroke="#7E786F" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} dx={-5} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(198,169,107,0.02)" vertical={false} />
+                  <XAxis dataKey="category" stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} />
                   <Tooltip content={<CustomCurrencyTooltip />} />
-                  <Bar dataKey="value" fill="url(#catGoldZ3)" radius={[3, 3, 0, 0]} cursor="pointer" onClick={handleCategoryBarClick} />
+                  <Bar dataKey="value" fill="url(#catBarGoldGrad)" radius={[2, 2, 0, 0]} cursor="pointer" onClick={handleCategoryBarClick} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
         </div>
-        <div className="border-t border-white/5 pt-3 mt-3 flex items-center gap-2 text-[11px] text-[#B8B2A8] font-semibold">
-          <AlertCircle size={13} className="text-[#C6A96B] flex-shrink-0" />
+        <div className="border-t border-white/5 pt-3 text-[10px] text-[#A39E93] font-semibold flex items-center gap-1.5">
+          <AlertCircle size={12} className="text-[#C6A96B]" />
           <span className="truncate">{categoryData.length === 0 ? 'N/A' : getCategoryInsight()}</span>
         </div>
       </div>
 
-      {/* Regional Performance */}
-      <div className="gold-card chart-spacious chart-spacious-medium flex flex-col justify-between">
+      {/* Panel 2: Region Bars */}
+      <div className="gold-card chart-spacious xl:col-span-4 flex flex-col justify-between min-h-[440px]">
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
-            <div className="flex items-center gap-2.5">
-              <Compass size={16} className="text-[#C6A96B]" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[#F5F1E8]">Regional Performance</h3>
+            <div className="flex items-center gap-2">
+              <Compass size={15} className="text-[#C6A96B]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Regional Volumes</h3>
             </div>
             {activeRegion && <span className="active-filter-badge">{activeRegion} ✕</span>}
           </div>
-          <div className="h-[320px] w-full">
+          <div className="h-[300px] w-full">
             {regionData.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#7E786F]">
+              <div className="h-full flex flex-col items-center justify-center text-[#6B665E]">
                 <HelpCircle size={24} className="mb-2 opacity-40" /><p className="text-xs">No region data</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={regionData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                <BarChart data={regionData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="regGoldZ3" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="regBarGoldGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#A88B4A" stopOpacity={0.8} />
                       <stop offset="95%" stopColor="#A88B4A" stopOpacity={0.2} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(198,169,107,0.03)" vertical={false} />
-                  <XAxis dataKey="region" stroke="#7E786F" fontSize={10} tickLine={false} axisLine={false} dy={8} />
-                  <YAxis stroke="#7E786F" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} dx={-5} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(198,169,107,0.02)" vertical={false} />
+                  <XAxis dataKey="region" stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} />
                   <Tooltip content={<CustomCurrencyTooltip />} />
-                  <Bar dataKey="value" fill="url(#regGoldZ3)" radius={[3, 3, 0, 0]} cursor="pointer" onClick={handleRegionBarClick} />
+                  <Bar dataKey="value" fill="url(#regBarGoldGrad)" radius={[2, 2, 0, 0]} cursor="pointer" onClick={handleRegionBarClick} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
         </div>
-        <div className="border-t border-white/5 pt-3 mt-3 flex items-center gap-2 text-[11px] text-[#B8B2A8] font-semibold">
-          <AlertCircle size={13} className="text-[#C6A96B] flex-shrink-0" />
+        <div className="border-t border-white/5 pt-3 text-[10px] text-[#A39E93] font-semibold flex items-center gap-1.5">
+          <AlertCircle size={12} className="text-[#C6A96B]" />
           <span className="truncate">{regionData.length === 0 ? 'N/A' : getRegionInsight()}</span>
+        </div>
+      </div>
+
+      {/* Panel 3: Category Share Pie Chart */}
+      <div className="gold-card chart-spacious xl:col-span-4 flex flex-col justify-between min-h-[440px]">
+        <div>
+          <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
+            <div className="flex items-center gap-2">
+              <PieIcon size={15} className="text-[#C6A96B]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Market Share Distribution</h3>
+            </div>
+          </div>
+          <div className="h-[230px] w-full relative flex items-center justify-center">
+            {categoryPieData.length === 0 ? (
+              <div className="text-[#6B665E] text-xs">No distribution metrics</div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Tooltip content={<CustomPieTooltip />} />
+                    <Pie data={categoryPieData} cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={2} dataKey="value" nameKey="name" cursor="pointer" onClick={handleCategoryBarClick}>
+                      {categoryPieData.map((entry, idx) => (
+                        <Cell key={`cell-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} opacity={activeCategory && activeCategory !== entry.name ? 0.3 : 1} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-[8px] text-[#6B665E] font-bold uppercase tracking-wider">Total Sales</span>
+                  <span className="text-xs font-extrabold text-[#EAE5DA] mt-0.5">{formatCurrency(totalSalesVal)}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        {/* Legend */}
+        <div className="border-t border-white/5 pt-3 flex flex-wrap gap-2.5 justify-center">
+          {categoryPieData.map((item, idx) => (
+            <button key={idx} onClick={() => handleCategoryBarClick(item)} className="flex items-center gap-1.5 text-[9px] font-bold text-[#A39E93] hover:text-[#EAE5DA] transition cursor-pointer">
+              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }} />
+              <span>{item.name}:</span>
+              <span className="text-[#EAE5DA]">{item.percent.toFixed(1)}%</span>
+            </button>
+          ))}
         </div>
       </div>
     </div>
@@ -335,27 +435,13 @@ export const MarketCharts: React.FC<MarketChartsProps> = ({
 };
 
 /* ============================================
-   3. FULFILLMENT CHART (Zone 4 — Operations)
+   3. FULFILLMENT Operations & SLA Charts (Zone 4)
    ============================================ */
 
 interface FulfillmentChartProps extends ChartInteractionProps {
   onStatusClick: (status: string) => void;
   activeStatus: string;
 }
-
-const CustomPieTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const d = payload[0].payload;
-    return (
-      <div className="bg-[#141414] border border-[#C6A96B]/15 rounded-lg p-4 shadow-2xl">
-        <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: d.color }}>{d.name}</p>
-        <p className="text-sm font-bold text-[#F5F1E8]">{formatNumber(d.value)} Orders ({d.percent.toFixed(1)}%)</p>
-        <p className="text-[10px] text-[#B8B2A8] mt-1.5">Click to filter by status</p>
-      </div>
-    );
-  }
-  return null;
-};
 
 export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
   charts, transactions, isLoading, error,
@@ -364,20 +450,20 @@ export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  if (!mounted) return <div className="chart-spacious-medium"></div>;
+  if (!mounted) return <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[400px]"></div>;
 
   if (error) {
     return (
-      <div className="gold-card chart-spacious border-red-950 text-center text-red-400 flex items-center justify-center min-h-[360px]">
+      <div className="gold-card chart-spacious border-red-950/20 text-center text-red-400 flex items-center justify-center min-h-[400px]">
         <div>
-          <p className="font-semibold mb-1">Failed to load fulfillment data</p>
-          <p className="text-xs text-[#7E786F]">{error}</p>
+          <p className="font-semibold mb-1">Failed to load fulfillment statistics</p>
+          <p className="text-xs text-[#6B665E]">{error}</p>
         </div>
       </div>
     );
   }
 
-  if (isLoading) return <ChartSkeleton height="min-h-[360px]" />;
+  if (isLoading) return <ChartSkeleton height="min-h-[400px]" />;
 
   const statusData = charts?.orderStatusDistribution || [];
   const pieData = statusData.map(item => ({
@@ -387,6 +473,19 @@ export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
   const formattedPieData = pieData.map(i => ({
     ...i, percent: totalCount > 0 ? (i.value / totalCount) * 100 : 0,
   }));
+
+  // Build backlog timeline count (simulated count changes based on status counts in transaction period)
+  // Group transactions by date to show leakage/backlog trends
+  const dailyDataMap: Record<string, { date: string; pending: number; cancelled: number }> = {};
+  transactions.forEach(t => {
+    const day = t.transactionDate.substring(5, 10); // MM-DD
+    if (!dailyDataMap[day]) {
+      dailyDataMap[day] = { date: day, pending: 0, cancelled: 0 };
+    }
+    if (t.status === 'Pending') dailyDataMap[day].pending += 1;
+    if (t.status === 'Cancelled') dailyDataMap[day].cancelled += 1;
+  });
+  const backlogTimeline = Object.values(dailyDataMap).sort((a,b) => a.date.localeCompare(b.date)).slice(-12);
 
   const completedCount = statusData.find(i => i.status === 'Completed')?.count || 0;
   const pendingCount = statusData.find(i => i.status === 'Pending')?.count || 0;
@@ -404,108 +503,131 @@ export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {/* Pie Chart */}
-      <div className="gold-card chart-spacious flex flex-col justify-between min-h-[360px]">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
+      {/* Panel 1: Pie Status */}
+      <div className="gold-card chart-spacious xl:col-span-4 flex flex-col justify-between min-h-[420px]">
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
             <div className="flex items-center gap-2.5">
-              <PieIcon size={16} className="text-[#C6A96B]" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[#F5F1E8]">Order Status</h3>
+              <PieIcon size={15} className="text-[#C6A96B]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Order Health Status</h3>
             </div>
             {activeStatus && <span className="active-filter-badge">{activeStatus} ✕</span>}
           </div>
-          <div className="h-[220px] w-full relative">
+          <div className="h-[230px] w-full relative flex items-center justify-center">
             {formattedPieData.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#7E786F]">
-                <HelpCircle size={24} className="mb-2 opacity-40" /><p className="text-xs">No status data</p>
-              </div>
+              <div className="text-[#6B665E] text-xs">No status distribution data</div>
             ) : (
               <>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Tooltip content={<CustomPieTooltip />} />
-                    <Pie data={formattedPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={3} dataKey="value" cursor="pointer" onClick={handleStatusClick}>
-                      {formattedPieData.map((entry, i) => (
-                        <Cell key={`cell-${i}`} fill={entry.color} opacity={activeStatus && activeStatus !== entry.name ? 0.25 : 1} />
+                    <Pie data={formattedPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={3} dataKey="value" cursor="pointer" onClick={handleStatusClick}>
+                      {formattedPieData.map((entry, idx) => (
+                        <Cell key={`cell-${idx}`} fill={entry.color} opacity={activeStatus && activeStatus !== entry.name ? 0.25 : 1} />
                       ))}
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[8px] text-[#7E786F] uppercase font-bold tracking-wider">Total</span>
-                  <span className="text-lg font-extrabold text-[#F5F1E8] mt-0.5">{formatNumber(totalCount)}</span>
+                  <span className="text-[8px] text-[#6B665E] font-bold uppercase tracking-wider">Volume</span>
+                  <span className="text-base font-extrabold text-[#EAE5DA] mt-0.5">{formatNumber(totalCount)}</span>
                 </div>
               </>
             )}
           </div>
         </div>
         {/* Legend */}
-        <div className="flex justify-center gap-5 pt-3 border-t border-white/5 mt-3">
-          {formattedPieData.map((item, i) => (
-            <button key={i} onClick={() => handleStatusClick(item)} className="flex items-center gap-2 text-[10px] font-bold cursor-pointer hover:opacity-80 transition">
-              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-              <span className="text-[#B8B2A8]">{item.name}</span>
-              <span className="text-[#F5F1E8]">{formatNumber(item.value)}</span>
+        <div className="border-t border-white/5 pt-3 flex justify-center gap-4">
+          {formattedPieData.map((item, idx) => (
+            <button key={idx} onClick={() => handleStatusClick(item)} className="flex items-center gap-1.5 text-[9px] font-bold text-[#A39E93] hover:text-[#EAE5DA] transition cursor-pointer">
+              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+              <span>{item.name}:</span>
+              <span className="text-[#EAE5DA]">{formatNumber(item.value)}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Fulfillment Insights Panel */}
-      <div className="gold-card chart-spacious flex flex-col justify-between min-h-[360px]">
+      {/* Panel 2: Cancellation & Pending Backlog Timeline */}
+      <div className="gold-card chart-spacious xl:col-span-4 flex flex-col justify-between min-h-[420px]">
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck size={16} className="text-[#C6A96B]" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[#F5F1E8]">Fulfillment Insights</h3>
+            <div className="flex items-center gap-2">
+              <Activity size={14} className="text-[#A88B4A]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Backlog & Leakage Timeline</h3>
+            </div>
+          </div>
+          <div className="h-[280px] w-full">
+            {backlogTimeline.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-[#6B665E]">
+                <HelpCircle size={24} className="mb-2 opacity-40" /><p className="text-xs">No backlog trend data</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={backlogTimeline} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.01)" vertical={false} />
+                  <XAxis dataKey="date" stroke="#6B665E" fontSize={9} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#6B665E" fontSize={9} tickLine={false} axisLine={false} />
+                  <Tooltip />
+                  <Legend verticalAlign="top" height={32} iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '9px', color: '#A39E93' }} />
+                  <Line type="monotone" dataKey="pending" name="Pending orders" stroke="#A88B4A" strokeWidth={2} dot={{ r: 2 }} />
+                  <Line type="monotone" dataKey="cancelled" name="Cancelled orders" stroke="#6B665E" strokeWidth={1.5} dot={{ r: 2 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+        <div className="text-[10px] text-[#6B665E] border-t border-white/5 pt-3">
+          Daily snapshot tracking critical pending queue backlogs vs leakage counts.
+        </div>
+      </div>
+
+      {/* Panel 3: Fulfillment Insights Card */}
+      <div className="gold-card chart-spacious xl:col-span-4 flex flex-col justify-between min-h-[420px]">
+        <div>
+          <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={15} className="text-[#C6A96B]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Operational SLA Metrics</h3>
             </div>
           </div>
 
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             {/* Completion Rate */}
-            <div className="p-4 rounded-lg bg-[#111111] border border-white/5">
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={14} className="text-[#C6A96B]" />
-                  <span className="text-[10px] font-bold text-[#7E786F] uppercase tracking-wider">Completion Rate</span>
-                </div>
-                <span className="text-lg font-extrabold text-[#C6A96B]">{completionRate}%</span>
+            <div className="p-3.5 rounded-lg bg-[#111111] border border-white/5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[9px] font-bold text-[#6B665E] uppercase tracking-wider">Fulfillment Health</span>
+                <span className="text-sm font-extrabold text-[#C6A96B]">{completionRate}%</span>
               </div>
-              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-[#C6A96B] rounded-full transition-all duration-500" style={{ width: `${completionRate}%` }} />
+              <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-[#C6A96B] rounded-full" style={{ width: `${completionRate}%` }} />
               </div>
-              <p className="text-[10px] text-[#B8B2A8] mt-2">{formatNumber(completedCount)} of {formatNumber(totalCount)} orders fulfilled</p>
+              <p className="text-[9px] text-[#A39E93] mt-2">{formatNumber(completedCount)} completed / {formatNumber(totalCount)} orders</p>
             </div>
 
             {/* Pending Rate */}
-            <div className="p-4 rounded-lg bg-[#111111] border border-white/5">
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="flex items-center gap-2">
-                  <Clock size={14} className="text-[#A88B4A]" />
-                  <span className="text-[10px] font-bold text-[#7E786F] uppercase tracking-wider">Pending Rate</span>
-                </div>
-                <span className="text-lg font-extrabold text-[#A88B4A]">{pendingRate}%</span>
+            <div className="p-3.5 rounded-lg bg-[#111111] border border-white/5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[9px] font-bold text-[#6B665E] uppercase tracking-wider">Pending Backlog SLA</span>
+                <span className="text-sm font-extrabold text-[#A88B4A]">{pendingRate}%</span>
               </div>
-              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-[#A88B4A] rounded-full transition-all duration-500" style={{ width: `${pendingRate}%` }} />
+              <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-[#A88B4A] rounded-full" style={{ width: `${pendingRate}%` }} />
               </div>
-              <p className="text-[10px] text-[#B8B2A8] mt-2">{formatNumber(pendingCount)} orders awaiting fulfillment</p>
+              <p className="text-[9px] text-[#A39E93] mt-2">{formatNumber(pendingCount)} active pending log ticket backlogs</p>
             </div>
 
             {/* Cancellation Pressure */}
-            <div className="p-4 rounded-lg bg-[#111111] border border-white/5">
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="flex items-center gap-2">
-                  <XCircle size={14} className="text-[#7E786F]" />
-                  <span className="text-[10px] font-bold text-[#7E786F] uppercase tracking-wider">Cancellation Pressure</span>
-                </div>
-                <span className="text-lg font-extrabold text-[#7E786F]">{cancellationRate}%</span>
+            <div className="p-3.5 rounded-lg bg-[#111111] border border-white/5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[9px] font-bold text-[#6B665E] uppercase tracking-wider">Cancellation Leakage</span>
+                <span className="text-sm font-extrabold text-red-500/80">{cancellationRate}%</span>
               </div>
-              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-[#7E786F] rounded-full transition-all duration-500" style={{ width: `${cancellationRate}%` }} />
+              <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-red-500/50 rounded-full" style={{ width: `${cancellationRate}%` }} />
               </div>
-              <p className="text-[10px] text-[#B8B2A8] mt-2">{formatNumber(cancelledCount)} orders cancelled</p>
+              <p className="text-[9px] text-[#A39E93] mt-2">{formatNumber(cancelledCount)} orders lost to cancel pipelines</p>
             </div>
           </div>
         </div>

@@ -2,17 +2,13 @@
 
 import React from 'react';
 import { useDashboardContext } from '../context/DashboardContext';
-import { FilterBar } from '../components/FilterBar';
 import { SummaryCards } from '../components/SummaryCards';
 import { TopPerformersPanel } from '../components/TopPerformersPanel';
 
 export default function Home() {
   const {
-    filters, searchVal, setSearchVal,
     summary, charts, transactionsResponse,
-    loading, errors,
-    setCategoryFilter, setRegionFilter, setStatusFilter,
-    setDateRangeFilter, resetFilters, handleExport
+    loading, errors
   } = useDashboardContext();
 
   const currentTransactions = transactionsResponse?.transactions || [];
@@ -29,21 +25,6 @@ export default function Home() {
             <div className="zone-header-dot" />
             <span className="zone-header-label">01</span>
             <span className="zone-header-title">Executive Overview</span>
-          </div>
-          
-          {/* Compact Filter Bar */}
-          <div>
-            <FilterBar
-              filters={filters}
-              searchVal={searchVal}
-              setSearchVal={setSearchVal}
-              setCategoryFilter={setCategoryFilter}
-              setRegionFilter={setRegionFilter}
-              setStatusFilter={setStatusFilter}
-              setDateRangeFilter={setDateRangeFilter}
-              resetFilters={resetFilters}
-              handleExport={handleExport}
-            />
           </div>
 
           {/* KPI Cards */}
