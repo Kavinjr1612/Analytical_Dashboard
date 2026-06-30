@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import { AlertTriangle, ShieldAlert, Sparkles, XCircle, Clock } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, Sparkles, XCircle, Clock, HelpCircle } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
 import { EmptyStateWrapper } from '../../components/EmptyState';
 
@@ -82,12 +82,26 @@ export default function RiskPage() {
     <EmptyStateWrapper>
       <div className="shell-container tab-transition max-w-[1700px] mx-auto flex flex-col gap-6">
         
+        {/* Context Takeaways Callout Card */}
+        <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex items-start gap-3">
+          <ShieldAlert size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+          <div>
+            <h4 className="text-xs font-extrabold text-[var(--text-primary)]">Operations Risk Takeaways</h4>
+            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
+              This panel aggregates data quality and transaction status risks. **Revenue Leakage** tracks the exact amount of potential revenue lost due to cancelled sales logs. **Operational Backlog** shows transactions marked as Pending which require shipping or invoice clearance. The **System Risk Index** synthesizes this into an overall risk percentage: scores above 30% indicate high operational friction.
+            </p>
+          </div>
+        </div>
+
         {/* Row 1: Warning visual headers / risk scores */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Risk Level gauge */}
           <div className="fintech-card flex flex-col justify-between border-red-500/10">
             <div className="flex justify-between items-center mb-3">
-              <span className="metric-label">System Risk Index</span>
+              <span className="metric-label flex items-center gap-1">
+                <span>System Risk Index</span>
+                <HelpCircle size={10} className="opacity-60 cursor-help" title="Calculates operational load: (Cancelled*1.5 + Pending*0.8) / Total * 100." />
+              </span>
               <ShieldAlert className="text-red-500" size={16} />
             </div>
             <div className="flex items-baseline gap-2">
@@ -104,7 +118,10 @@ export default function RiskPage() {
           {/* Revenue leakage */}
           <div className="fintech-card flex flex-col justify-between border-red-500/10">
             <div className="flex justify-between items-center mb-3">
-              <span className="metric-label">Revenue Leakage</span>
+              <span className="metric-label flex items-center gap-1">
+                <span>Revenue Leakage</span>
+                <HelpCircle size={10} className="opacity-60 cursor-help" title="Sum of transaction amounts for items whose status is Cancelled." />
+              </span>
               <XCircle className="text-red-500" size={16} />
             </div>
             <div className="metric-value text-red-500">

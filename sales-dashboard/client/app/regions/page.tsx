@@ -5,7 +5,7 @@ import {
   BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
-import { ShieldCheck, MapPin, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
+import { ShieldCheck, MapPin, AlertTriangle, TrendingUp, TrendingDown, HelpCircle } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
 import { EmptyStateWrapper } from '../../components/EmptyState';
 
@@ -82,13 +82,27 @@ export default function RegionsPage() {
     <EmptyStateWrapper>
       <div className="shell-container tab-transition max-w-[1700px] mx-auto flex flex-col gap-6">
         
+        {/* Context Takeaways Callout Card */}
+        <div className="p-4 rounded-xl bg-[var(--accent-glow)] border border-[var(--accent-color)]/20 flex items-start gap-3">
+          <MapPin size={16} className="text-[var(--accent-color)] mt-0.5 flex-shrink-0" />
+          <div>
+            <h4 className="text-xs font-extrabold text-[var(--text-primary)]">Geographical Intelligence Takeaways</h4>
+            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
+              This screen tracks sales metrics sorted by region. **Growth Velocity** index measures sales momentum by comparing the second half of dates to the first half. A positive percentage represents sales acceleration, while a negative percentage flags market cooling. The **Risk Weakness Feed** alerts you to operating zones that have decelerating growth or whose revenue sits at least 30% below target averages.
+            </p>
+          </div>
+        </div>
+
         {/* Row 1: Regional Comparison Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
           
           {/* Left: Bar comparison (col-span-7) */}
           <div className="xl:col-span-7 fintech-card h-[360px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Regional Revenue Volume</h3>
+              <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+                <span>Regional Revenue Volume</span>
+                <HelpCircle size={11} className="opacity-60 cursor-help" title="Bar rankings showing total gross revenue generated in each active region." />
+              </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Sales rankings by geographical operating divisions
               </p>
@@ -120,7 +134,10 @@ export default function RegionsPage() {
           {/* Right: Radar representation for variance (col-span-5) */}
           <div className="xl:col-span-5 fintech-card h-[360px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Geographical distribution</h3>
+              <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+                <span>Geographical Distribution</span>
+                <HelpCircle size={11} className="opacity-60 cursor-help" title="Radar spreads showing variance and concentrations of territory revenue." />
+              </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Radar spread visualizing regional concentration
               </p>

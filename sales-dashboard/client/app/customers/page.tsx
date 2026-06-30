@@ -134,13 +134,27 @@ export default function CustomersPage() {
     <EmptyStateWrapper>
       <div className="shell-container tab-transition max-w-[1700px] mx-auto flex flex-col gap-6">
         
+        {/* Context Takeaways Callout Card */}
+        <div className="p-4 rounded-xl bg-[var(--accent-glow)] border border-[var(--accent-color)]/20 flex items-start gap-3">
+          <Users size={16} className="text-[var(--accent-color)] mt-0.5 flex-shrink-0" />
+          <div>
+            <h4 className="text-xs font-extrabold text-[var(--text-primary)]">Client Behavior Takeaways</h4>
+            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
+              This panel tracks cohort loyalty and transaction repeat behaviors. The **MoM Client Retention Curve** details what percentage of buyers from Month 1 continue purchasing in Month 2, 3, etc., illustrating cohort decay. The **Loyalty Ratio Index** compares the total number of unique repeat buyers against single-time buyers to calculate overall brand stickiness.
+            </p>
+          </div>
+        </div>
+
         {/* Row 1: Retention curves & Spend distribution */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
           
           {/* Client Retention Curve (col-span-7) */}
           <div className="xl:col-span-7 fintech-card h-[340px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)]">MoM Client Retention Curve</h3>
+              <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+                <span>MoM Client Retention Curve</span>
+                <HelpCircle size={11} className="opacity-60 cursor-help" title="Tracks the lifetime decay of customer purchase frequency over monthly offsets." />
+              </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Cohort decay analysis indicating customer lifetime return rates
               </p>
@@ -165,7 +179,10 @@ export default function CustomersPage() {
           {/* Repeat purchase ratio card (col-span-5) */}
           <div className="xl:col-span-5 fintech-card h-[340px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Loyalty Ratio Index</h3>
+              <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+                <span>Loyalty Ratio Index</span>
+                <HelpCircle size={11} className="opacity-60 cursor-help" title="Measures the fraction of buyers with >1 transactions against total unique customer count." />
+              </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Calculates ratio of repeat customers against total buyers
               </p>

@@ -5,7 +5,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   BarChart, Bar, LineChart, Line, CartesianGrid, Legend
 } from 'recharts';
-import { TrendingUp, DollarSign, Activity, AlertCircle, TrendingDown } from 'lucide-react';
+import { TrendingUp, DollarSign, Activity, AlertCircle, TrendingDown, HelpCircle } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
 import { EmptyStateWrapper } from '../../components/EmptyState';
 
@@ -88,11 +88,25 @@ export default function RevenuePage() {
     <EmptyStateWrapper>
       <div className="shell-container tab-transition max-w-[1700px] mx-auto flex flex-col gap-6">
         
+        {/* Context Takeaways Callout Card */}
+        <div className="p-4 rounded-xl bg-[var(--accent-glow)] border border-[var(--accent-color)]/20 flex items-start gap-3">
+          <Activity size={16} className="text-[var(--accent-color)] mt-0.5 flex-shrink-0" />
+          <div>
+            <h4 className="text-xs font-extrabold text-[var(--text-primary)]">Financial Intelligence Takeaways</h4>
+            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
+              This screen visualizes historical gross sales revenue alongside a statistical **Linear Regression Trend Line** (represented by the dashed red index). Linear regression helps you spot the overall trajectory of business growth while filtering out temporary seasonal spikes. If you notice standard deviation anomalies in the feed below, these represent historical dates with abnormal sales activity.
+            </p>
+          </div>
+        </div>
+
         {/* Row 1: Large Dominant Revenue Trend with Linear Regression line */}
         <div className="fintech-card h-[380px] flex flex-col justify-between">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Revenue War Room</h3>
+              <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+                <span>Revenue War Room</span>
+                <HelpCircle size={11} className="opacity-60 cursor-help" title="Visualizes gross sales over time with linear trend line projection overlay." />
+              </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Financial trend analytics with linear regression projection
               </p>
@@ -136,8 +150,9 @@ export default function RevenuePage() {
           {/* AOV Trend Chart (col-span-5) */}
           <div className="xl:col-span-5 fintech-card h-[310px] flex flex-col justify-between">
             <div>
-              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
-                Average Ticket (AOV) Trend
+              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1 flex items-center gap-1">
+                <span>Average Ticket (AOV) Trend</span>
+                <HelpCircle size={10} className="opacity-60 cursor-help" title="Measures the average spend per order (Total Revenue / Total Orders)." />
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Averaged transaction values per month</p>
             </div>
@@ -163,8 +178,9 @@ export default function RevenuePage() {
           {/* Anomaly detector / list (col-span-4) */}
           <div className="xl:col-span-4 fintech-card h-[310px] flex flex-col justify-between">
             <div>
-              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
-                Revenue Anomalies Feed
+              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1 flex items-center gap-1">
+                <span>Revenue Anomalies Feed</span>
+                <HelpCircle size={10} className="opacity-60 cursor-help" title="Flags dates where gross revenue deviated by more than 1.8x the standard deviation from the mean." />
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Flags periods with standard deviation changes</p>
             </div>

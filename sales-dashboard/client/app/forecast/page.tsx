@@ -137,6 +137,17 @@ export default function ForecastPage() {
     <EmptyStateWrapper>
       <div className="shell-container tab-transition max-w-[1700px] mx-auto flex flex-col gap-6">
         
+        {/* Context Takeaways Callout Card */}
+        <div className="p-4 rounded-xl bg-[var(--accent-glow)] border border-[var(--accent-color)]/20 flex items-start gap-3">
+          <Sparkles size={16} className="text-[var(--accent-color)] mt-0.5 flex-shrink-0" />
+          <div>
+            <h4 className="text-xs font-extrabold text-[var(--text-primary)]">Predictive Intelligence Takeaways</h4>
+            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
+              This screen utilizes statistical algorithms to project future revenue. **Moving Average** averages the last 3 active periods to project the immediate short-term index. **Trend Projection** uses a linear regression line to forecast long-term paths, surrounded by a shaded **Uncertainty Cone**. This cone represents a 95% standard error range; it widens in future periods to reflect increasing unpredictability.
+            </p>
+          </div>
+        </div>
+
         {/* Verification Check */}
         {trendData.length < 3 ? (
           <div className="fintech-card p-10 text-center">
@@ -153,7 +164,10 @@ export default function ForecastPage() {
               <div className="fintech-card h-[380px] flex flex-col justify-between">
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Predictive Growth Cone</h3>
+                    <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+                      <span>Predictive Growth Cone</span>
+                      <HelpCircle size={11} className="opacity-60 cursor-help" title="Projects sales trends with standard error boundaries representing statistical variance." />
+                    </h3>
                     <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                       Linear regression forecast with standard error confidence boundaries
                     </p>

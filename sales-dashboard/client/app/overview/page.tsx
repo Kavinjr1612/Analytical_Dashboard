@@ -5,7 +5,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, PieChart, Pie
 } from 'recharts';
-import { DollarSign, ShoppingBag, Users, TrendingUp, ShieldCheck, Award } from 'lucide-react';
+import { DollarSign, ShoppingBag, Users, TrendingUp, ShieldCheck, Award, HelpCircle } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
 import { EmptyStateWrapper } from '../../components/EmptyState';
 
@@ -165,8 +165,9 @@ export default function OverviewPage() {
           
           {/* Left: Revenue Trend Chart (50% width - col-span-6) */}
           <div className="xl:col-span-6 fintech-card h-[340px] flex flex-col">
-            <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4">
-              Ingestion Revenue trend
+            <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
+              <span>Ingestion Revenue trend</span>
+              <HelpCircle size={10} className="opacity-60 cursor-help" title="Shows monthly or daily aggregate revenue patterns from active spreadsheets." />
             </h4>
             <div className="flex-1 w-full min-h-0 text-xs">
               <ResponsiveContainer width="100%" height="100%">
@@ -191,8 +192,9 @@ export default function OverviewPage() {
 
           {/* Center: Regional Comparison (25% width - col-span-3) */}
           <div className="xl:col-span-3 fintech-card h-[340px] flex flex-col">
-            <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4">
-              Regional Revenue Rank
+            <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
+              <span>Regional Revenue Rank</span>
+              <HelpCircle size={10} className="opacity-60 cursor-help" title="Compares total gross sales revenue segmented by operating territories." />
             </h4>
             <div className="flex-1 w-full min-h-0 text-xs">
               <ResponsiveContainer width="100%" height="100%">
@@ -215,8 +217,9 @@ export default function OverviewPage() {
 
           {/* Right: Category Breakdown (25% width - col-span-3) */}
           <div className="xl:col-span-3 fintech-card h-[340px] flex flex-col">
-            <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4">
-              Category volume share
+            <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
+              <span>Category volume share</span>
+              <HelpCircle size={10} className="opacity-60 cursor-help" title="Pie breakdown visualizing product categories sorted by share size." />
             </h4>
             <div className="flex-1 w-full min-h-0 text-xs relative flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">

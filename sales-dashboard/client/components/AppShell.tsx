@@ -1,15 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { 
-  Sun, Moon, Download, Search, Calendar, Database 
+  Sun, Moon, Download, Search, Calendar, Database, BookOpen 
 } from 'lucide-react';
 import { DashboardProvider, useDashboardContext } from '../context/DashboardContext';
 import { NavigationRail } from './NavigationRail';
 import { ErrorBoundary } from './ErrorBoundary';
+import { GlossaryDrawer } from './GlossaryDrawer';
 
-const TopContextBar: React.FC = () => {
+const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossary }) => {
   const pathname = usePathname();
   const { 
     theme, toggleTheme, datasets, filters, 
@@ -115,6 +116,16 @@ const TopContextBar: React.FC = () => {
             />
           </div>
 
+          {/* Data Dictionary Toggler */}
+          <button
+            onClick={onOpenGlossary}
+            className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-color)] hover:bg-[rgba(148,163,184,0.05)] rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs transition cursor-pointer"
+            title="Open Data Glossary"
+          >
+            <BookOpen size={12} />
+            Dictionary
+          </button>
+
           {/* Theme Toggler */}
           <button
             onClick={toggleTheme}
@@ -141,6 +152,7 @@ const TopContextBar: React.FC = () => {
 const ShellContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isSidebarCollapsed } = useDashboardContext();
   const pathname = usePathname();
+  const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
 
   // If on home/upload screen, we do not want sidebar offset on desktop, or wait:
   // "Sidebar Persistent. Overview, Revenue, Markets... 72px collapsed, 240px expanded."
@@ -155,7 +167,7 @@ const ShellContent: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       
       {/* Container Offset holding Context Bar and Content canvas */}
       <div className={`flex-1 flex flex-col ${offsetClass}`}>
-        <TopContextBar />
+        <TopContextBar onOpenGlossary={() => setIsGlossaryOpen(true)} />
         
         <main className="flex-1 flex flex-col pt-4 pb-12">
           {children}
@@ -167,6 +179,9 @@ const ShellContent: React.FC<{ children: React.ReactNode }> = ({ children }) => 
           </p>
         </footer>
       </div>
+
+      {/* Floating Glossary Drawer */}
+      <GlossaryDrawer isOpen={isGlossaryOpen} onClose={() => setIsGlossaryOpen(false)} />
     </div>
   );
 };
