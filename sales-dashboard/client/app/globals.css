@@ -192,9 +192,31 @@ body {
 }
 
 .zone-inner {
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 95%;
+  margin: 0;
   padding: 0 24px;
+}
+
+@media (min-width: 1280px) {
+  .zone-inner {
+    max-width: 90%;
+    padding: 0 32px;
+  }
+}
+
+.zone-inner-expansive {
+  width: 100%;
+  max-width: 98% !important;
+  margin: 0;
+  padding: 0 24px;
+}
+
+@media (min-width: 1280px) {
+  .zone-inner-expansive {
+    max-width: 96% !important;
+    padding: 0 32px;
+  }
 }
 
 /* Responsive: offset for nav rail on desktop */
