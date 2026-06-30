@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, RotateCcw, Download, Calendar, Filter, X } from 'lucide-react';
+import { Search, RotateCcw, Download, Calendar, X } from 'lucide-react';
 import { FilterParams } from '../types';
 
 interface FilterBarProps {
@@ -27,135 +27,118 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const hasActiveFilters = !!(filters.category || filters.region || filters.status || filters.startDate || filters.endDate || filters.search);
 
   return (
-    <div className="gold-card p-5 mb-6 flex flex-col gap-4 bg-[#141414]">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-white/5">
-        <div className="flex items-center gap-2.5">
-          <Filter size={16} className="text-[#C6A96B]" />
-          <h2 className="text-sm font-semibold tracking-wider uppercase text-[#F5F1E8]">Control Panel</h2>
-          {hasActiveFilters && (
-            <span className="active-filter-badge ml-1">Active</span>
-          )}
+    <div className="flex flex-col gap-2.5">
+      {/* Main compact row */}
+      <div className="filter-bar-compact flex-wrap">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[160px] max-w-[220px]">
+          <Search className="absolute left-2.5 top-2 text-[#7E786F]" size={13} />
+          <input
+            id="search"
+            type="text"
+            placeholder="Search..."
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+            className="w-full rounded bg-[#0A0A0A] border border-white/5 py-1.5 pl-8 pr-3 text-xs text-[#F5F1E8] placeholder-[#7E786F] outline-none focus:border-[#A88B4A]/50 transition"
+          />
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            onClick={handleExport}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded bg-[#C6A96B] hover:bg-[#A88B4A] px-4 py-2 text-xs font-bold text-[#0A0A0A] transition-all duration-200 active:scale-95 cursor-pointer shadow-lg shadow-black/35"
-          >
-            <Download size={14} />
-            Export CSV
-          </button>
+
+        {/* Divider */}
+        <div className="w-px h-5 bg-white/5 hidden sm:block" />
+
+        {/* Category */}
+        <select
+          id="category"
+          value={filters.category || ''}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="rounded bg-[#0A0A0A] border border-white/5 px-2.5 py-1.5 text-xs text-[#F5F1E8] outline-none focus:border-[#A88B4A]/50 cursor-pointer min-w-[110px]"
+        >
+          <option value="" className="bg-[#0A0A0A]">All Categories</option>
+          {CATEGORIES.map((c) => <option key={c} value={c} className="bg-[#0A0A0A]">{c}</option>)}
+        </select>
+
+        {/* Region */}
+        <select
+          id="region"
+          value={filters.region || ''}
+          onChange={(e) => setRegionFilter(e.target.value)}
+          className="rounded bg-[#0A0A0A] border border-white/5 px-2.5 py-1.5 text-xs text-[#F5F1E8] outline-none focus:border-[#A88B4A]/50 cursor-pointer min-w-[100px]"
+        >
+          <option value="" className="bg-[#0A0A0A]">All Regions</option>
+          {REGIONS.map((r) => <option key={r} value={r} className="bg-[#0A0A0A]">{r}</option>)}
+        </select>
+
+        {/* Divider */}
+        <div className="w-px h-5 bg-white/5 hidden sm:block" />
+
+        {/* Date */}
+        <div className="flex items-center gap-1.5">
+          <Calendar size={12} className="text-[#7E786F] flex-shrink-0" />
+          <input
+            type="date"
+            value={filters.startDate || ''}
+            onChange={(e) => setDateRangeFilter(e.target.value, filters.endDate || '')}
+            className="rounded bg-[#0A0A0A] border border-white/5 px-2 py-1 text-[11px] text-[#F5F1E8] outline-none focus:border-[#A88B4A]/50 cursor-pointer w-[110px]"
+          />
+          <span className="text-[#7E786F] text-[10px]">→</span>
+          <input
+            type="date"
+            value={filters.endDate || ''}
+            onChange={(e) => setDateRangeFilter(filters.startDate || '', e.target.value)}
+            className="rounded bg-[#0A0A0A] border border-white/5 px-2 py-1 text-[11px] text-[#F5F1E8] outline-none focus:border-[#A88B4A]/50 cursor-pointer w-[110px]"
+          />
         </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Actions */}
+        <button
+          onClick={resetFilters}
+          className="flex items-center gap-1.5 rounded border border-white/5 hover:border-white/10 bg-[#0A0A0A] px-2.5 py-1.5 text-[11px] font-bold text-[#7E786F] hover:text-white transition cursor-pointer"
+          title="Reset Filters"
+        >
+          <RotateCcw size={12} />
+          <span className="hidden sm:inline">Reset</span>
+        </button>
+
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1.5 rounded bg-[#C6A96B] hover:bg-[#A88B4A] px-3.5 py-1.5 text-[11px] font-bold text-[#0A0A0A] transition active:scale-95 cursor-pointer shadow-lg shadow-black/30"
+        >
+          <Download size={12} />
+          Export
+        </button>
       </div>
 
       {/* Active Filter Badges */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2 px-1">
           {filters.category && (
             <button onClick={() => setCategoryFilter('')} className="active-filter-badge cursor-pointer hover:bg-[#C6A96B]/20 transition">
-              Category: {filters.category} <X size={10} />
+              Category: {filters.category} <X size={9} />
             </button>
           )}
           {filters.region && (
             <button onClick={() => setRegionFilter('')} className="active-filter-badge cursor-pointer hover:bg-[#C6A96B]/20 transition">
-              Region: {filters.region} <X size={10} />
+              Region: {filters.region} <X size={9} />
             </button>
           )}
           {filters.status && (
             <button onClick={() => setStatusFilter('')} className="active-filter-badge cursor-pointer hover:bg-[#C6A96B]/20 transition">
-              Status: {filters.status} <X size={10} />
+              Status: {filters.status} <X size={9} />
             </button>
           )}
           {(filters.startDate || filters.endDate) && (
             <button onClick={() => setDateRangeFilter('', '')} className="active-filter-badge cursor-pointer hover:bg-[#C6A96B]/20 transition">
-              Date: {filters.startDate || '...'} → {filters.endDate || '...'} <X size={10} />
+              Date: {filters.startDate || '...'} → {filters.endDate || '...'} <X size={9} />
             </button>
           )}
-          <button onClick={resetFilters} className="text-[10px] text-[#7E786F] hover:text-white font-bold uppercase tracking-wider cursor-pointer transition ml-1">
+          <button onClick={resetFilters} className="text-[9px] text-[#7E786F] hover:text-white font-bold uppercase tracking-wider cursor-pointer transition ml-1">
             Clear All
           </button>
         </div>
       )}
-
-      {/* Filters Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
-        {/* Search */}
-        <div className="lg:col-span-3 flex flex-col gap-1.5">
-          <label htmlFor="search" className="text-[10px] font-bold text-[#7E786F] uppercase tracking-wider">Search</label>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 text-[#7E786F]" size={14} />
-            <input
-              id="search"
-              type="text"
-              placeholder='Search customer or product...'
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              className="w-full rounded bg-[#111111] border border-white/5 py-2.5 pl-9 pr-4 text-xs text-[#F5F1E8] placeholder-[#7E786F] outline-none focus:border-[#A88B4A] transition-all duration-200"
-            />
-          </div>
-        </div>
-
-        {/* Category */}
-        <div className="lg:col-span-2 flex flex-col gap-1.5">
-          <label htmlFor="category" className="text-[10px] font-bold text-[#7E786F] uppercase tracking-wider">Category</label>
-          <select
-            id="category"
-            value={filters.category || ''}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full rounded bg-[#111111] border border-white/5 p-2.5 text-xs text-[#F5F1E8] outline-none focus:border-[#A88B4A] transition cursor-pointer"
-          >
-            <option value="" className="bg-[#111111]">All Categories</option>
-            {CATEGORIES.map((c) => <option key={c} value={c} className="bg-[#111111]">{c}</option>)}
-          </select>
-        </div>
-
-        {/* Region */}
-        <div className="lg:col-span-2 flex flex-col gap-1.5">
-          <label htmlFor="region" className="text-[10px] font-bold text-[#7E786F] uppercase tracking-wider">Region</label>
-          <select
-            id="region"
-            value={filters.region || ''}
-            onChange={(e) => setRegionFilter(e.target.value)}
-            className="w-full rounded bg-[#111111] border border-white/5 p-2.5 text-xs text-[#F5F1E8] outline-none focus:border-[#A88B4A] transition cursor-pointer"
-          >
-            <option value="" className="bg-[#111111]">All Regions</option>
-            {REGIONS.map((r) => <option key={r} value={r} className="bg-[#111111]">{r}</option>)}
-          </select>
-        </div>
-
-        {/* Date */}
-        <div className="sm:col-span-2 lg:col-span-4 flex flex-col gap-1.5">
-          <label className="text-[10px] font-bold text-[#7E786F] uppercase tracking-wider flex items-center gap-1">
-            <Calendar size={10} /> Date Period
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="date"
-              value={filters.startDate || ''}
-              onChange={(e) => setDateRangeFilter(e.target.value, filters.endDate || '')}
-              className="rounded bg-[#111111] border border-white/5 p-2 text-xs text-[#F5F1E8] outline-none focus:border-[#A88B4A] transition cursor-pointer"
-            />
-            <input
-              type="date"
-              value={filters.endDate || ''}
-              onChange={(e) => setDateRangeFilter(filters.startDate || '', e.target.value)}
-              className="rounded bg-[#111111] border border-white/5 p-2 text-xs text-[#F5F1E8] outline-none focus:border-[#A88B4A] transition cursor-pointer"
-            />
-          </div>
-        </div>
-
-        {/* Reset */}
-        <div className="lg:col-span-1">
-          <button
-            onClick={resetFilters}
-            className="w-full flex items-center justify-center gap-2 rounded border border-white/5 hover:border-white/10 bg-[#1A1A1A] py-2.5 px-3 text-xs font-bold text-[#B8B2A8] hover:text-white transition duration-200 active:scale-95 cursor-pointer"
-            title="Reset Filters"
-          >
-            <RotateCcw size={14} />
-            <span className="lg:hidden">Reset</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

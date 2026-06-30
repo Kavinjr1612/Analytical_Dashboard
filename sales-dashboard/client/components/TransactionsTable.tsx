@@ -162,12 +162,15 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   }
 
   return (
-    <div className="gold-card p-5 bg-[#141414]">
+    <div className="gold-card p-6 bg-[#141414]">
       {/* Title */}
       <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <Table size={16} className="text-[#C6A96B]" />
-          <h3 className="text-sm font-semibold tracking-wider uppercase text-[#F5F1E8]">Operational Ledger</h3>
+          <h3 className="text-sm font-bold tracking-wider uppercase text-[#F5F1E8]">Transaction Ledger</h3>
+          <span className="text-[9px] font-bold text-[#7E786F] bg-white/5 px-2 py-0.5 rounded-full">
+            {totalCount.toLocaleString()} records
+          </span>
         </div>
         <span className="text-[10px] font-bold text-[#7E786F] tracking-wide uppercase">
           Showing {transactions.length} of {totalCount.toLocaleString()} orders

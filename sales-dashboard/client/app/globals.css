@@ -2,6 +2,7 @@
 
 :root {
   --background: #0A0A0A;
+  --background-alt: #0D0D0D;
   --foreground: #F5F1E8;
   --card-bg: #141414;
   --card-hover: #1A1A1A;
@@ -16,6 +17,7 @@
   --success: #C6A96B;
   --warning: #A88B4A;
   --danger: #7E786F;
+  --rail-width: 64px;
 }
 
 @theme inline {
@@ -35,6 +37,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 80px;
 }
 
 body {
@@ -48,11 +51,184 @@ body {
   background-attachment: fixed;
 }
 
-/* Premium executive card style */
+/* ============================================
+   NAVIGATION RAIL
+   ============================================ */
+
+.nav-rail {
+  position: fixed;
+  left: 0;
+  top: 64px;
+  bottom: 0;
+  width: var(--rail-width);
+  background: #0A0A0A;
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 24px;
+  gap: 4px;
+}
+
+.nav-rail-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 4px;
+  width: 56px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  color: #7E786F;
+  text-decoration: none;
+  user-select: none;
+}
+
+.nav-rail-item:hover {
+  color: #B8B2A8;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.nav-rail-item.active {
+  color: #C6A96B;
+  background: rgba(198, 169, 107, 0.06);
+}
+
+.nav-rail-item.active::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: #C6A96B;
+  border-radius: 0 4px 4px 0;
+}
+
+.nav-rail-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+  text-align: center;
+}
+
+/* Scroll progress track */
+.nav-rail-progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.nav-rail-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  background: linear-gradient(180deg, #C6A96B 0%, #A88B4A 100%);
+  border-radius: 0 0 2px 2px;
+  transition: height 0.15s ease-out;
+  opacity: 0.5;
+}
+
+/* ============================================
+   DASHBOARD ZONES
+   ============================================ */
+
+.dashboard-zone {
+  position: relative;
+  width: 100%;
+  padding: 48px 0;
+}
+
+.dashboard-zone:first-of-type {
+  padding-top: 32px;
+}
+
+.dashboard-zone-alt {
+  background-color: var(--background-alt);
+}
+
+.zone-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.zone-header-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7E786F;
+}
+
+.zone-header-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #F5F1E8;
+  letter-spacing: -0.01em;
+}
+
+.zone-header-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #C6A96B;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.zone-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Responsive: offset for nav rail on desktop */
+@media (min-width: 1024px) {
+  .dashboard-content {
+    margin-left: var(--rail-width);
+  }
+}
+
+/* Hide rail on mobile, show horizontal nav instead */
+@media (max-width: 1023px) {
+  .nav-rail {
+    display: none;
+  }
+
+  .nav-mobile {
+    display: flex;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nav-mobile {
+    display: none;
+  }
+}
+
+/* ============================================
+   PREMIUM CARD STYLES
+   ============================================ */
+
 .gold-card {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.6);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -64,11 +240,10 @@ body {
   box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.8), 0 0 15px 0 rgba(198, 169, 107, 0.02);
 }
 
-/* Clickable card with cursor and stronger hover */
 .gold-card-clickable {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.6);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
@@ -87,20 +262,69 @@ body {
   box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.7);
 }
 
-/* Gold text gradient */
+/* ============================================
+   CHART SPACIOUS CONTAINERS
+   ============================================ */
+
+.chart-spacious {
+  padding: 28px;
+  border-radius: 12px;
+}
+
+.chart-spacious-tall {
+  min-height: 520px;
+}
+
+.chart-spacious-medium {
+  min-height: 420px;
+}
+
+/* ============================================
+   TYPOGRAPHY & UTILITIES
+   ============================================ */
+
 .gold-text-gradient {
   background: linear-gradient(135deg, #F5F1E8 30%, #C6A96B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Contextual row highlight for linked transactions */
 .row-highlight {
   background-color: rgba(198, 169, 107, 0.04) !important;
   border-left: 2px solid rgba(198, 169, 107, 0.3) !important;
 }
 
-/* Muted custom scrollbars */
+.active-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(198, 169, 107, 0.1);
+  color: #C6A96B;
+  border: 1px solid rgba(198, 169, 107, 0.2);
+}
+
+/* ============================================
+   COMPACT FILTER BAR
+   ============================================ */
+
+.filter-bar-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -119,7 +343,10 @@ body {
   background: var(--accent-gold-muted);
 }
 
-/* Charts adjustments */
+/* ============================================
+   RECHARTS TOOLTIPS
+   ============================================ */
+
 .recharts-default-tooltip {
   background-color: #141414 !important;
   border: 1px solid rgba(198, 169, 107, 0.15) !important;
@@ -131,21 +358,23 @@ body {
   color: var(--text-primary) !important;
 }
 
-/* Drawer slide-in animation */
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
 @keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes revealUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .drawer-slide-in {
@@ -156,37 +385,10 @@ body {
   animation: fadeIn 0.2s ease-out forwards;
 }
 
-/* Section reveal animation */
-@keyframes revealUp {
-  from {
-    transform: translateY(12px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 .section-reveal {
-  animation: revealUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: revealUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Active filter badge pulse */
-.active-filter-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  font-size: 10px;
-  font-weight: 700;
-  background: rgba(198, 169, 107, 0.1);
-  color: #C6A96B;
-  border: 1px solid rgba(198, 169, 107, 0.2);
-}
-
-/* Peak dot glow on charts */
 .peak-dot {
   filter: drop-shadow(0 0 6px rgba(198, 169, 107, 0.5));
 }
