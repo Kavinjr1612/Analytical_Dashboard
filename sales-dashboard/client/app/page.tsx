@@ -85,9 +85,8 @@ export default function Home() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-[#0A0A0A]">
-        {/* ===== HEADER ===== */}
         <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0A0A]/90 backdrop-blur-md h-16 dashboard-content">
-          <div className="h-full w-full max-w-[95%] xl:max-w-[90%] px-6 lg:px-8 flex justify-between items-center">
+          <div className="h-full w-full px-6 lg:px-8 flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div className="p-1.5 rounded-lg bg-[#C6A96B]/10 border border-[#C6A96B]/15 text-[#C6A96B]">
                 <LayoutDashboard size={18} />
