@@ -2,12 +2,17 @@ import { Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import prisma from '../utils/db.js';
 
+const isValidUUID = (val: any): boolean => {
+  if (typeof val !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+};
+
 // Helper to build search/filter where clause
 const buildFilterWhere = (query: any) => {
   const { startDate, endDate, category, region, search, status, datasetId } = query;
   const where: any = {};
 
-  if (datasetId && datasetId !== 'all') {
+  if (datasetId && isValidUUID(datasetId)) {
     where.datasetId = String(datasetId);
   }
 
@@ -127,7 +132,7 @@ export const getCharts = async (req: Request, res: Response) => {
     // Compile dynamic filters for Raw query (parameterized)
     const whereConditions: Prisma.Sql[] = [];
 
-    if (datasetId && datasetId !== 'all') {
+    if (datasetId && isValidUUID(datasetId)) {
       whereConditions.push(Prisma.sql`dataset_id = ${datasetId}::uuid`);
     }
     if (category) {
