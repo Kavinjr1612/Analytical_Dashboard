@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0A0A0A;
-  --background-alt: #0D0D0D;
-  --foreground: #F5F1E8;
-  --card-bg: #141414;
-  --card-hover: #1A1A1A;
-  --card-border: rgba(198, 169, 107, 0.08);
-  --card-border-hover: rgba(198, 169, 107, 0.2);
-  --accent-gold: #C6A96B;
-  --accent-gold-muted: #A88B4A;
-  --accent-gold-highlight: #D9C18A;
-  --text-primary: #F5F1E8;
-  --text-secondary: #B8B2A8;
-  --text-muted: #7E786F;
+  --background: #070707;
+  --background-alt: #0A0A0A;
+  --foreground: #EAE5DA; /* Warm typographic white */
+  --card-bg: #0F0F0F;    /* Rich matte carbon */
+  --card-hover: #141414;
+  --card-border: rgba(198, 169, 107, 0.05); /* Brushed champagne border */
+  --card-border-hover: rgba(198, 169, 107, 0.18);
+  --accent-gold: #C6A96B; /* Brushed brass champagne */
+  --accent-gold-muted: #967C43;
+  --accent-gold-highlight: #E1CFAC;
+  --text-primary: #EAE5DA;
+  --text-secondary: #A39E93;
+  --text-muted: #6B665E;
   --success: #C6A96B;
-  --warning: #A88B4A;
-  --danger: #7E786F;
+  --warning: #967C43;
+  --danger: #6B665E;
   --rail-width: 64px;
 }
 
@@ -24,7 +24,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card-bg: var(--card-bg);
-  --color-card-hover: var(--card-hover);
+  --color-card-hover: var(--color-hover);
   --color-card-border: var(--card-border);
   --color-card-border-hover: var(--card-border-hover);
   --color-accent-gold: var(--accent-gold);
@@ -36,8 +36,8 @@
 }
 
 html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 80px;
+  height: 100%;
+  overflow-y: auto;
 }
 
 body {
@@ -46,9 +46,10 @@ body {
   font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(198, 169, 107, 0.03) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(168, 139, 74, 0.02) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(198, 169, 107, 0.02) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(168, 139, 74, 0.01) 0px, transparent 50%);
   background-attachment: fixed;
+  height: 100%;
 }
 
 /* ============================================
@@ -61,8 +62,8 @@ body {
   top: 64px;
   bottom: 0;
   width: var(--rail-width);
-  background: #0A0A0A;
-  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  background: #070707;
+  border-right: 1px solid rgba(255, 255, 255, 0.02);
   z-index: 40;
   display: flex;
   flex-direction: column;
@@ -82,20 +83,20 @@ body {
   width: 56px;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.25s ease;
-  color: #7E786F;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #6B665E;
   text-decoration: none;
   user-select: none;
 }
 
 .nav-rail-item:hover {
-  color: #B8B2A8;
-  background: rgba(255, 255, 255, 0.02);
+  color: #A39E93;
+  background: rgba(255, 255, 255, 0.01);
 }
 
 .nav-rail-item.active {
   color: #C6A96B;
-  background: rgba(198, 169, 107, 0.06);
+  background: rgba(198, 169, 107, 0.04);
 }
 
 .nav-rail-item.active::before {
@@ -126,7 +127,7 @@ body {
   top: 0;
   bottom: 0;
   width: 2px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.01);
 }
 
 .nav-rail-progress-fill {
@@ -134,24 +135,19 @@ body {
   left: 0;
   top: 0;
   width: 2px;
-  background: linear-gradient(180deg, #C6A96B 0%, #A88B4A 100%);
+  background: linear-gradient(180deg, #C6A96B 0%, #967C43 100%);
   border-radius: 0 0 2px 2px;
   transition: height 0.15s ease-out;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 /* ============================================
-   DASHBOARD ZONES
+   DASHBOARD ZONES (Zero Scroll Cockpit)
    ============================================ */
 
 .dashboard-zone {
   position: relative;
   width: 100%;
-  padding: 48px 0;
-}
-
-.dashboard-zone:first-of-type {
-  padding-top: 32px;
 }
 
 .dashboard-zone-alt {
@@ -162,9 +158,9 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 28px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .zone-header-label {
@@ -172,13 +168,13 @@ body {
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #7E786F;
+  color: #6B665E;
 }
 
 .zone-header-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: #F5F1E8;
+  color: #EAE5DA;
   letter-spacing: -0.01em;
 }
 
@@ -187,7 +183,7 @@ body {
   height: 4px;
   border-radius: 50%;
   background: #C6A96B;
-  opacity: 0.5;
+  opacity: 0.4;
   flex-shrink: 0;
 }
 
@@ -248,8 +244,8 @@ body {
 .gold-card {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
-  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -257,14 +253,14 @@ body {
   background-color: var(--card-hover);
   border-color: var(--card-border-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.8), 0 0 15px 0 rgba(198, 169, 107, 0.02);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.85), 0 0 15px rgba(198, 169, 107, 0.01);
 }
 
 .gold-card-clickable {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
-  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   user-select: none;
@@ -274,12 +270,12 @@ body {
   background-color: var(--card-hover);
   border-color: var(--card-border-hover);
   transform: translateY(-3px);
-  box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.85), 0 0 20px 0 rgba(198, 169, 107, 0.04);
+  box-shadow: 0 10px 45px rgba(0, 0, 0, 0.9), 0 0 20px rgba(198, 169, 107, 0.02);
 }
 
 .gold-card-clickable:active {
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.7);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
 }
 
 /* ============================================
@@ -287,16 +283,16 @@ body {
    ============================================ */
 
 .chart-spacious {
-  padding: 28px;
-  border-radius: 12px;
+  padding: 24px;
+  border-radius: 8px;
 }
 
 .chart-spacious-tall {
-  min-height: 520px;
+  min-height: calc(100vh - 180px);
 }
 
 .chart-spacious-medium {
-  min-height: 420px;
+  min-height: calc(100vh - 200px);
 }
 
 /* ============================================
@@ -304,14 +300,14 @@ body {
    ============================================ */
 
 .gold-text-gradient {
-  background: linear-gradient(135deg, #F5F1E8 30%, #C6A96B 100%);
+  background: linear-gradient(135deg, #EAE5DA 30%, #C6A96B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .row-highlight {
-  background-color: rgba(198, 169, 107, 0.04) !important;
-  border-left: 2px solid rgba(198, 169, 107, 0.3) !important;
+  background-color: rgba(198, 169, 107, 0.03) !important;
+  border-left: 2px solid rgba(198, 169, 107, 0.25) !important;
 }
 
 .active-filter-badge {
@@ -322,9 +318,9 @@ body {
   border-radius: 9999px;
   font-size: 10px;
   font-weight: 700;
-  background: rgba(198, 169, 107, 0.1);
+  background: rgba(198, 169, 107, 0.08);
   color: #C6A96B;
-  border: 1px solid rgba(198, 169, 107, 0.2);
+  border: 1px solid rgba(198, 169, 107, 0.15);
 }
 
 /* ============================================
@@ -335,10 +331,10 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
-  background: #111111;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 10px;
+  padding: 8px 14px;
+  background: #0B0B0B;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
 }
 
 /* ============================================
@@ -346,16 +342,16 @@ body {
    ============================================ */
 
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0A0A0A;
+  background: #070707;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #202020;
+  background: #1C1C1C;
   border-radius: 10px;
 }
 
@@ -368,10 +364,10 @@ body {
    ============================================ */
 
 .recharts-default-tooltip {
-  background-color: #141414 !important;
-  border: 1px solid rgba(198, 169, 107, 0.15) !important;
+  background-color: #0F0F0F !important;
+  border: 1px solid rgba(198, 169, 107, 0.1) !important;
   border-radius: 6px !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95) !important;
 }
 
 .recharts-tooltip-item {
@@ -382,33 +378,15 @@ body {
    ANIMATIONS
    ============================================ */
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes revealUp {
-  from { transform: translateY(16px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.drawer-slide-in {
-  animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.drawer-backdrop {
-  animation: fadeIn 0.2s ease-out forwards;
-}
-
-.section-reveal {
-  animation: revealUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.tab-transition {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .peak-dot {
-  filter: drop-shadow(0 0 6px rgba(198, 169, 107, 0.5));
+  filter: drop-shadow(0 0 6px rgba(198, 169, 107, 0.4));
 }
