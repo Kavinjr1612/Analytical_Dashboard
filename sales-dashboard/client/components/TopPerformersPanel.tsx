@@ -69,41 +69,41 @@ export const TopPerformersPanel: React.FC<CommandCenterProps> = ({
   };
 
   const metrics = [
-    { label: 'Top Customer', ...getTopCustomer(), icon: <User size={13} className="text-[#C6A96B]" /> },
-    { label: 'Top Product', ...getTopProduct(), icon: <Package size={13} className="text-[#C6A96B]" /> },
-    { label: 'Strongest Region', ...getFastestRegion(), icon: <TrendingUp size={13} className="text-[#C6A96B]" /> },
-    { label: 'Weakest Region', ...getWeakestRegion(), icon: <TrendingDown size={13} className="text-[#A88B4A]" /> },
-    { label: 'Cancel Source', ...getCancellationSource(), icon: <AlertTriangle size={13} className="text-[#A88B4A]" /> },
-    { label: 'Velocity', ...getVelocity(), icon: <Zap size={13} className="text-[#C6A96B]" /> },
-    { label: 'Concentration', ...getConcentration(), icon: <PieChart size={13} className="text-[#C6A96B]" /> },
+    { label: 'Top Customer', ...getTopCustomer(), icon: <User size={13} className="text-[#3b82f6]" /> },
+    { label: 'Top Product', ...getTopProduct(), icon: <Package size={13} className="text-[#3b82f6]" /> },
+    { label: 'Strongest Region', ...getFastestRegion(), icon: <TrendingUp size={13} className="text-[#3b82f6]" /> },
+    { label: 'Weakest Region', ...getWeakestRegion(), icon: <TrendingDown size={13} className="text-[#64748b]" /> },
+    { label: 'Cancel Source', ...getCancellationSource(), icon: <AlertTriangle size={13} className="text-[#ef4444]" /> },
+    { label: 'Velocity', ...getVelocity(), icon: <Zap size={13} className="text-[#3b82f6]" /> },
+    { label: 'Concentration', ...getConcentration(), icon: <PieChart size={13} className="text-[#06b6d4]" /> },
   ];
 
   return (
-    <div id="section-command-center" className="gold-card p-5">
+    <div id="section-command-center" className="gold-card p-5 bg-[#0f172a]">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/5">
-        <Medal size={14} className="text-[#C6A96B]" />
-        <h3 className="text-xs font-bold tracking-wider uppercase text-[#F5F1E8]">Command Center</h3>
+        <Medal size={14} className="text-[#3b82f6]" />
+        <h3 className="text-xs font-bold tracking-wider uppercase text-[#f8fafc]">Command Center</h3>
       </div>
 
-      {/* Compact Grid: 4 top, 3 bottom */}
+      {/* Compact Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {isLoading ? (
           Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="animate-pulse p-3 rounded bg-[#111111] border border-white/5">
+            <div key={i} className="animate-pulse p-3 rounded bg-[#1e293b] border border-white/5">
               <div className="h-2.5 w-1/2 bg-white/5 rounded mb-2"></div>
               <div className="h-4 w-3/4 bg-white/5 rounded"></div>
             </div>
           ))
         ) : (
           metrics.map((m, i) => (
-            <div key={i} className="p-3 rounded-lg bg-[#111111] border border-white/5 hover:border-white/8 transition min-w-0">
+            <div key={i} className="p-3 rounded-lg bg-[#0b111e] border border-white/5 hover:border-white/8 transition min-w-0">
               <div className="flex items-center gap-1.5 mb-1.5">
                 {m.icon}
-                <span className="text-[8px] font-bold text-[#7E786F] tracking-wider uppercase truncate">{m.label}</span>
+                <span className="text-[8px] font-bold text-[#64748b] tracking-wider uppercase truncate">{m.label}</span>
               </div>
-              <p className="text-xs font-bold text-[#F5F1E8] truncate">{m.name}</p>
-              <p className="text-[10px] text-[#B8B2A8] truncate mt-0.5">{m.detail}</p>
+              <p className="text-xs font-bold text-[#f8fafc] truncate">{m.name}</p>
+              <p className="text-[10px] text-[#94a3b8] truncate mt-0.5">{m.detail}</p>
             </div>
           ))
         )}

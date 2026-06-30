@@ -32,14 +32,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       <div className="filter-bar-compact flex-wrap">
         {/* Search */}
         <div className="relative flex-1 min-w-[160px] max-w-[220px]">
-          <Search className="absolute left-2.5 top-2 text-[#7E786F]" size={13} />
+          <Search className="absolute left-2.5 top-2 text-[#64748b]" size={13} />
           <input
             id="search"
             type="text"
             placeholder="Search..."
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
-            className="w-full rounded bg-[#0A0A0A] border border-white/5 py-1.5 pl-8 pr-3 text-xs text-[#F5F1E8] placeholder-[#7E786F] outline-none focus:border-[#A88B4A]/50 transition"
+            className="w-full rounded bg-[#080c14] border border-white/5 py-1.5 pl-8 pr-3 text-xs text-[#f8fafc] placeholder-[#64748b] outline-none focus:border-[#3b82f6]/50 transition"
           />
         </div>
 
@@ -51,10 +51,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           id="category"
           value={filters.category || ''}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded bg-[#0A0A0A] border border-white/5 px-2.5 py-1.5 text-xs text-[#F5F1E8] outline-none focus:border-[#A88B4A]/50 cursor-pointer min-w-[110px]"
+          className="rounded bg-[#080c14] border border-white/5 px-2.5 py-1.5 text-xs text-[#f8fafc] outline-none focus:border-[#3b82f6]/50 cursor-pointer min-w-[110px]"
         >
-          <option value="" className="bg-[#0A0A0A]">All Categories</option>
-          {CATEGORIES.map((c) => <option key={c} value={c} className="bg-[#0A0A0A]">{c}</option>)}
+          <option value="" className="bg-[#080c14]">All Categories</option>
+          {CATEGORIES.map((c) => <option key={c} value={c} className="bg-[#080c14]">{c}</option>)}
         </select>
 
         {/* Region */}
@@ -62,10 +62,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           id="region"
           value={filters.region || ''}
           onChange={(e) => setRegionFilter(e.target.value)}
-          className="rounded bg-[#0A0A0A] border border-white/5 px-2.5 py-1.5 text-xs text-[#F5F1E8] outline-none focus:border-[#A88B4A]/50 cursor-pointer min-w-[100px]"
+          className="rounded bg-[#080c14] border border-white/5 px-2.5 py-1.5 text-xs text-[#f8fafc] outline-none focus:border-[#3b82f6]/50 cursor-pointer min-w-[100px]"
         >
-          <option value="" className="bg-[#0A0A0A]">All Regions</option>
-          {REGIONS.map((r) => <option key={r} value={r} className="bg-[#0A0A0A]">{r}</option>)}
+          <option value="" className="bg-[#080c14]">All Regions</option>
+          {REGIONS.map((r) => <option key={r} value={r} className="bg-[#080c14]">{r}</option>)}
         </select>
 
         {/* Divider */}
@@ -73,19 +73,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
         {/* Date */}
         <div className="flex items-center gap-1.5">
-          <Calendar size={12} className="text-[#7E786F] flex-shrink-0" />
+          <Calendar size={12} className="text-[#64748b] flex-shrink-0" />
           <input
             type="date"
             value={filters.startDate || ''}
             onChange={(e) => setDateRangeFilter(e.target.value, filters.endDate || '')}
-            className="rounded bg-[#0A0A0A] border border-white/5 px-2 py-1 text-[11px] text-[#F5F1E8] outline-none focus:border-[#A88B4A]/50 cursor-pointer w-[110px]"
+            className="rounded bg-[#080c14] border border-white/5 px-2 py-1 text-[11px] text-[#f8fafc] outline-none focus:border-[#3b82f6]/50 cursor-pointer w-[110px]"
           />
-          <span className="text-[#7E786F] text-[10px]">→</span>
+          <span className="text-[#64748b] text-[10px]">→</span>
           <input
             type="date"
             value={filters.endDate || ''}
             onChange={(e) => setDateRangeFilter(filters.startDate || '', e.target.value)}
-            className="rounded bg-[#0A0A0A] border border-white/5 px-2 py-1 text-[11px] text-[#F5F1E8] outline-none focus:border-[#A88B4A]/50 cursor-pointer w-[110px]"
+            className="rounded bg-[#080c14] border border-white/5 px-2 py-1 text-[11px] text-[#f8fafc] outline-none focus:border-[#3b82f6]/50 cursor-pointer w-[110px]"
           />
         </div>
 
@@ -95,7 +95,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         {/* Actions */}
         <button
           onClick={resetFilters}
-          className="flex items-center gap-1.5 rounded border border-white/5 hover:border-white/10 bg-[#0A0A0A] px-2.5 py-1.5 text-[11px] font-bold text-[#7E786F] hover:text-white transition cursor-pointer"
+          className="flex items-center gap-1.5 rounded border border-white/5 hover:border-white/10 bg-[#080c14] px-2.5 py-1.5 text-[11px] font-bold text-[#64748b] hover:text-white transition cursor-pointer"
           title="Reset Filters"
         >
           <RotateCcw size={12} />
@@ -104,7 +104,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
         <button
           onClick={handleExport}
-          className="flex items-center gap-1.5 rounded bg-[#C6A96B] hover:bg-[#A88B4A] px-3.5 py-1.5 text-[11px] font-bold text-[#0A0A0A] transition active:scale-95 cursor-pointer shadow-lg shadow-black/30"
+          className="flex items-center gap-1.5 rounded bg-[#3b82f6] hover:bg-[#2563eb] px-3.5 py-1.5 text-[11px] font-bold text-white transition active:scale-95 cursor-pointer shadow-lg shadow-black/30 animate-none"
         >
           <Download size={12} />
           Export
@@ -115,26 +115,26 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2 px-1">
           {filters.category && (
-            <button onClick={() => setCategoryFilter('')} className="active-filter-badge cursor-pointer hover:bg-[#C6A96B]/20 transition">
+            <button onClick={() => setCategoryFilter('')} className="active-filter-badge cursor-pointer hover:bg-[#3b82f6]/20 transition animate-none">
               Category: {filters.category} <X size={9} />
             </button>
           )}
           {filters.region && (
-            <button onClick={() => setRegionFilter('')} className="active-filter-badge cursor-pointer hover:bg-[#C6A96B]/20 transition">
+            <button onClick={() => setRegionFilter('')} className="active-filter-badge cursor-pointer hover:bg-[#3b82f6]/20 transition animate-none">
               Region: {filters.region} <X size={9} />
             </button>
           )}
           {filters.status && (
-            <button onClick={() => setStatusFilter('')} className="active-filter-badge cursor-pointer hover:bg-[#C6A96B]/20 transition">
+            <button onClick={() => setStatusFilter('')} className="active-filter-badge cursor-pointer hover:bg-[#3b82f6]/20 transition animate-none">
               Status: {filters.status} <X size={9} />
             </button>
           )}
           {(filters.startDate || filters.endDate) && (
-            <button onClick={() => setDateRangeFilter('', '')} className="active-filter-badge cursor-pointer hover:bg-[#C6A96B]/20 transition">
+            <button onClick={() => setDateRangeFilter('', '')} className="active-filter-badge cursor-pointer hover:bg-[#3b82f6]/20 transition animate-none">
               Date: {filters.startDate || '...'} → {filters.endDate || '...'} <X size={9} />
             </button>
           )}
-          <button onClick={resetFilters} className="text-[9px] text-[#7E786F] hover:text-white font-bold uppercase tracking-wider cursor-pointer transition ml-1">
+          <button onClick={resetFilters} className="text-[9px] text-[#64748b] hover:text-white font-bold uppercase tracking-wider cursor-pointer transition ml-1">
             Clear All
           </button>
         </div>

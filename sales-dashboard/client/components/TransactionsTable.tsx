@@ -148,31 +148,31 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
       return <ChevronsUpDown size={12} className="opacity-40" />;
     }
     return sorting.sortOrder === 'desc' 
-      ? <ChevronDown size={12} className="text-[#C6A96B]" /> 
-      : <ChevronUp size={12} className="text-[#C6A96B]" />;
+      ? <ChevronDown size={12} className="text-[#3b82f6]" /> 
+      : <ChevronUp size={12} className="text-[#3b82f6]" />;
   };
 
   if (error) {
     return (
-      <div className="gold-card p-6 border-red-950 text-center text-red-400">
+      <div className="gold-card p-6 border-red-950/20 text-center text-red-400">
         <p className="font-semibold mb-1">Failed to load transactions</p>
-        <p className="text-xs text-text-muted">{error}</p>
+        <p className="text-xs text-[#64748b]">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="gold-card p-6 bg-[#141414]">
+    <div className="gold-card p-6 bg-[#0f172a]">
       {/* Title */}
       <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-4">
         <div className="flex items-center gap-2.5">
-          <Table size={16} className="text-[#C6A96B]" />
-          <h3 className="text-sm font-bold tracking-wider uppercase text-[#F5F1E8]">Transaction Ledger</h3>
-          <span className="text-[9px] font-bold text-[#7E786F] bg-white/5 px-2 py-0.5 rounded-full">
+          <Table size={16} className="text-[#3b82f6]" />
+          <h3 className="text-sm font-bold tracking-wider uppercase text-[#f8fafc]">Transaction Ledger</h3>
+          <span className="text-[9px] font-bold text-[#64748b] bg-white/5 px-2 py-0.5 rounded-full">
             {totalCount.toLocaleString()} records
           </span>
         </div>
-        <span className="text-[10px] font-bold text-[#7E786F] tracking-wide uppercase">
+        <span className="text-[10px] font-bold text-[#64748b] tracking-wide uppercase">
           Showing {transactions.length} of {totalCount.toLocaleString()} orders
         </span>
       </div>
@@ -181,14 +181,14 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
       <div className="overflow-x-auto w-full mb-4 rounded border border-white/5">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-[#111111] border-b border-white/5">
+            <tr className="bg-[#0b111e] border-b border-white/5">
               {table.getHeaderGroups()[0].headers.map((header) => {
                 const isSortable = header.column.id === 'amount' || header.column.id === 'transactionDate';
                 return (
                   <th
                     key={header.id}
                     onClick={() => isSortable && handleSortToggle(header.column.id)}
-                    className={`py-3.5 px-4 text-[10px] font-bold text-[#7E786F] uppercase tracking-wider select-none ${isSortable ? 'cursor-pointer hover:text-white transition' : ''}`}
+                    className={`py-3.5 px-4 text-[10px] font-bold text-[#64748b] uppercase tracking-wider select-none ${isSortable ? 'cursor-pointer hover:text-white transition' : ''}`}
                   >
                     <div className="flex items-center gap-1.5">
                       {flexRender(header.column.columnDef.header, header.getContext())}
@@ -214,7 +214,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
             ) : transactions.length === 0 ? (
               // Empty state
               <tr>
-                <td colSpan={columns.length} className="py-12 text-center text-[#7E786F]">
+                <td colSpan={columns.length} className="py-12 text-center text-[#64748b]">
                   <List className="mx-auto mb-2.5 opacity-40" size={24} />
                   <p className="text-xs">No records found matching current controls</p>
                 </td>
@@ -229,7 +229,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 return (
                   <tr
                     key={row.id}
-                    className={`border-b border-white/5 hover:bg-[#1A1A1A] transition-colors duration-150 group ${isHighlighted ? 'row-highlight' : ''}`}
+                    className={`border-b border-white/5 hover:bg-[#1e293b] transition-colors duration-150 group ${isHighlighted ? 'row-highlight' : ''}`}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="py-3.5 px-4 text-xs">
@@ -248,14 +248,14 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-white/5">
         {/* Page size drop-down */}
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-[#7E786F] uppercase tracking-wider">Page Size</span>
+          <span className="text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Page Size</span>
           <select
             value={limit}
             onChange={(e) => onLimitChange(Number(e.target.value))}
-            className="rounded bg-[#111111] border border-white/5 px-2 py-1.5 text-xs text-[#F5F1E8] outline-none focus:border-[#A88B4A] cursor-pointer"
+            className="rounded bg-[#0b111e] border border-white/5 px-2 py-1.5 text-xs text-[#f8fafc] outline-none focus:border-[#3b82f6] cursor-pointer"
           >
             {[10, 20, 25, 50].map((size) => (
-              <option key={size} value={size} className="bg-[#111111]">
+              <option key={size} value={size} className="bg-[#0b111e]">
                 {size} Rows
               </option>
             ))}
@@ -267,20 +267,20 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
           <button
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1 || isLoading}
-            className="flex items-center gap-1.5 rounded border border-white/5 bg-[#1A1A1A] px-3.5 py-2 text-xs font-bold text-[#B8B2A8] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+            className="flex items-center gap-1.5 rounded border border-white/5 bg-[#1e293b] px-3.5 py-2 text-xs font-bold text-[#94a3b8] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
           >
             <ArrowLeft size={12} />
             Previous
           </button>
           
-          <span className="text-xs text-[#B8B2A8] font-medium">
-            Page <strong className="text-[#F5F1E8]">{page}</strong> of <strong className="text-[#F5F1E8]">{totalPages}</strong>
+          <span className="text-xs text-[#94a3b8] font-medium">
+            Page <strong className="text-[#f8fafc]">{page}</strong> of <strong className="text-[#f8fafc]">{totalPages}</strong>
           </span>
 
           <button
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages || isLoading}
-            className="flex items-center gap-1.5 rounded border border-white/5 bg-[#1A1A1A] px-3.5 py-2 text-xs font-bold text-[#B8B2A8] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+            className="flex items-center gap-1.5 rounded border border-white/5 bg-[#1e293b] px-3.5 py-2 text-xs font-bold text-[#94a3b8] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
           >
             Next
             <ArrowRight size={12} />

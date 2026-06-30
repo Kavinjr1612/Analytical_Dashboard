@@ -6,7 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ReferenceDot, Legend
 } from 'recharts';
-import { TrendingUp, BarChart3, Compass, PieChart as PieIcon, HelpCircle, AlertCircle, ShieldCheck, Clock, XCircle, Activity, Heart } from 'lucide-react';
+import { TrendingUp, BarChart3, Compass, PieChart as PieIcon, HelpCircle, AlertCircle, ShieldCheck, Clock, XCircle, Activity } from 'lucide-react';
 import { DashboardCharts, Transaction } from '../types';
 import { DrilldownData } from './DrilldownDrawer';
 
@@ -33,24 +33,42 @@ const formatFullCurrency = (val: number) =>
 
 const formatNumber = (val: number) => new Intl.NumberFormat('en-US').format(val);
 
-const GOLD_PALETTE: Record<string, string> = {
-  Completed: '#C6A96B',
-  Pending: '#A88B4A',
-  Cancelled: '#6B665E',
+const THEME_PALETTE: Record<string, string> = {
+  Completed: '#3b82f6', // Cool blue
+  Pending: '#06b6d4',    // Cyan
+  Cancelled: '#64748b',  // Slate steel
 };
+
+/* ============================================
+   SHARED CUSTOM TOOLTIPS (Declared first!)
+   ============================================ */
 
 const CustomCurrencyTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#0F0F0F] border border-[#C6A96B]/15 rounded-lg p-3 shadow-2xl">
-        <p className="text-[10px] font-bold text-[#6B665E] uppercase tracking-wide mb-1">{label}</p>
+      <div className="bg-[#0f172a] border border-[#3b82f6]/15 rounded-lg p-3 shadow-2xl">
+        <p className="text-[10px] font-bold text-[#64748b] uppercase tracking-wide mb-1">{label}</p>
         {payload.map((item: any, idx: number) => (
-          <p key={idx} className="text-xs font-bold text-[#EAE5DA] flex items-center gap-1.5 mt-0.5">
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color || '#C6A96B' }} />
-            {item.name}: {typeof item.value === 'number' && item.name.includes('AOV') ? formatFullCurrency(item.value) : formatFullCurrency(item.value)}
+          <p key={idx} className="text-xs font-bold text-[#f8fafc] flex items-center gap-1.5 mt-0.5">
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color || '#3b82f6' }} />
+            {item.name}: {formatFullCurrency(item.value)}
           </p>
         ))}
-        <p className="text-[9px] text-[#6B665E] mt-2">Click to drill down</p>
+        <p className="text-[9px] text-[#64748b] mt-2">Click to drill down</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomPieTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const d = payload[0].payload;
+    return (
+      <div className="bg-[#0f172a] border border-[#3b82f6]/15 rounded-lg p-3 shadow-2xl">
+        <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: d.color || '#3b82f6' }}>{d.name}</p>
+        <p className="text-xs font-bold text-[#f8fafc]">{formatNumber(d.value)} Orders ({d.percent.toFixed(1)}%)</p>
+        <p className="text-[9px] text-[#64748b] mt-1.5">Click to filter by status</p>
       </div>
     );
   }
@@ -94,7 +112,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
       <div className="gold-card chart-spacious chart-spacious-tall border-red-950/20 text-center text-red-400 flex items-center justify-center">
         <div>
           <p className="font-semibold mb-1">Failed to load revenue data</p>
-          <p className="text-xs text-[#6B665E]">{error}</p>
+          <p className="text-xs text-[#64748b]">{error}</p>
         </div>
       </div>
     );
@@ -105,9 +123,13 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
   const trendData = charts?.revenueTrend || [];
   const isEmpty = trendData.length === 0;
 
-  // Calculate AOV per Month dynamically from transactions for Chart 2
+  // Calculate AOV per Month dynamically from transactions for Chart 2 with safe string checking
   const aovTrendData = trendData.map(pt => {
-    const matchedTxs = transactions.filter(t => t.transactionDate.startsWith(pt.date));
+    const matchedTxs = transactions.filter(t => 
+      t.transactionDate && 
+      typeof t.transactionDate === 'string' && 
+      t.transactionDate.startsWith(pt.date)
+    );
     const totalAmt = matchedTxs.reduce((sum, t) => sum + Number(t.amount), 0);
     const aov = matchedTxs.length > 0 ? totalAmt / matchedTxs.length : 0;
     return {
@@ -133,7 +155,11 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
     const point = data.activePayload[0]?.payload;
     if (point) {
       onDateFocus(point.date);
-      const matchedTxs = transactions.filter(t => t.transactionDate.startsWith(point.date));
+      const matchedTxs = transactions.filter(t => 
+        t.transactionDate && 
+        typeof t.transactionDate === 'string' && 
+        t.transactionDate.startsWith(point.date)
+      );
       const totalRev = trendData.reduce((s, p) => s + p.revenue, 0);
       onDrilldown({ type: 'trend', label: point.date, value: point.revenue, total: totalRev, transactions: matchedTxs });
     }
@@ -146,14 +172,14 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
             <div className="flex items-center gap-2.5">
-              <TrendingUp size={15} className="text-[#C6A96B]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Revenue Growth Trend</h3>
+              <TrendingUp size={15} className="text-[#3b82f6]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#f8fafc]">Revenue Growth Trend</h3>
             </div>
-            <span className="text-[9px] font-bold text-[#6B665E] tracking-wide uppercase bg-white/5 px-2 py-0.5 rounded">Click point to focus</span>
+            <span className="text-[9px] font-bold text-[#64748b] tracking-wide uppercase bg-white/5 px-2 py-0.5 rounded">Click point to focus</span>
           </div>
           <div className="h-[340px] w-full">
             {isEmpty ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#6B665E]">
+              <div className="h-full flex flex-col items-center justify-center text-[#64748b]">
                 <HelpCircle size={28} className="mb-3 opacity-40" />
                 <p className="text-xs">No revenue trend data available</p>
               </div>
@@ -161,26 +187,26 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData} margin={{ top: 15, right: 15, left: -20, bottom: 5 }} onClick={handleClick} style={{ cursor: 'pointer' }}>
                   <defs>
-                    <linearGradient id="revGoldGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#C6A96B" stopOpacity={0.22} />
-                      <stop offset="95%" stopColor="#C6A96B" stopOpacity={0.0} />
+                    <linearGradient id="revBlueGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.22} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(198,169,107,0.02)" vertical={false} />
-                  <XAxis dataKey="date" stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} dy={8} />
-                  <YAxis stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} dx={-5} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.01)" vertical={false} />
+                  <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} dy={8} />
+                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} dx={-5} />
                   <Tooltip content={<CustomCurrencyTooltip />} />
-                  <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#C6A96B" strokeWidth={2} fillOpacity={1} fill="url(#revGoldGrad)" />
+                  <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#revBlueGrad)" />
                   {peakPoint && (
-                    <ReferenceDot x={peakPoint.date} y={peakPoint.revenue} r={5} fill="#C6A96B" stroke="#070707" strokeWidth={2} className="peak-dot" />
+                    <ReferenceDot x={peakPoint.date} y={peakPoint.revenue} r={5} fill="#3b82f6" stroke="#080c14" strokeWidth={2} className="peak-dot" />
                   )}
                 </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
         </div>
-        <div className="border-t border-white/5 pt-3 mt-4 flex items-center gap-2 text-[10px] text-[#A39E93] font-semibold">
-          <AlertCircle size={12} className="text-[#C6A96B] flex-shrink-0" />
+        <div className="border-t border-white/5 pt-3 mt-4 flex items-center gap-2 text-[10px] text-[#94a3b8] font-semibold">
+          <AlertCircle size={12} className="text-[#3b82f6] flex-shrink-0" />
           <span className="truncate">{isEmpty ? 'N/A' : getTrendInsight()}</span>
         </div>
       </div>
@@ -190,13 +216,13 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
             <div className="flex items-center gap-2">
-              <Activity size={14} className="text-[#A88B4A]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Revenue vs Ticket Size (AOV)</h3>
+              <Activity size={14} className="text-[#06b6d4]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#f8fafc]">Revenue vs Ticket Size (AOV)</h3>
             </div>
           </div>
           <div className="h-[340px] w-full">
             {isEmpty ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#6B665E]">
+              <div className="h-full flex flex-col items-center justify-center text-[#64748b]">
                 <HelpCircle size={28} className="mb-3 opacity-40" />
                 <p className="text-xs">No comparative data</p>
               </div>
@@ -204,25 +230,25 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={aovTrendData} margin={{ top: 15, right: 10, left: -20, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="barGoldGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#A88B4A" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#A88B4A" stopOpacity={0.2} />
+                    <linearGradient id="barBlueGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.2} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.01)" vertical={false} />
-                  <XAxis dataKey="date" stroke="#6B665E" fontSize={9} tickLine={false} axisLine={false} />
-                  <YAxis yAxisId="left" stroke="#6B665E" fontSize={9} tickLine={false} axisLine={false} tickFormatter={formatCurrency} />
-                  <YAxis yAxisId="right" orientation="right" stroke="#C6A96B" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(v)=>`$${v}`} />
+                  <XAxis dataKey="date" stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="left" stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} tickFormatter={formatCurrency} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#3b82f6" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(v)=>`$${v}`} />
                   <Tooltip content={<CustomCurrencyTooltip />} />
-                  <Legend verticalAlign="top" height={36} iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px', color: '#A39E93' }} />
-                  <Bar yAxisId="left" dataKey="revenue" name="Total Revenue" fill="url(#barGoldGrad)" radius={[2, 2, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="aov" name="Avg Ticket (AOV)" stroke="#C6A96B" strokeWidth={2.5} dot={{ r: 3 }} />
+                  <Legend verticalAlign="top" height={36} iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px', color: '#94a3b8' }} />
+                  <Bar yAxisId="left" dataKey="revenue" name="Total Revenue" fill="url(#barBlueGrad)" radius={[2, 2, 0, 0]} />
+                  <Line yAxisId="right" type="monotone" dataKey="aov" name="Avg Ticket (AOV)" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
         </div>
-        <div className="text-[10px] text-[#6B665E] border-t border-white/5 pt-3 mt-4">
+        <div className="text-[10px] text-[#64748b] border-t border-white/5 pt-3 mt-4">
           Shows alignment between volume spikes and transaction value sizes.
         </div>
       </div>
@@ -256,7 +282,7 @@ export const MarketCharts: React.FC<MarketChartsProps> = ({
       <div className="gold-card chart-spacious border-red-950/20 text-center text-red-400 flex items-center justify-center min-h-[400px]">
         <div>
           <p className="font-semibold mb-1">Failed to load market data</p>
-          <p className="text-xs text-[#6B665E]">{error}</p>
+          <p className="text-xs text-[#64748b]">{error}</p>
         </div>
       </div>
     );
@@ -303,7 +329,7 @@ export const MarketCharts: React.FC<MarketChartsProps> = ({
     return `Lead Region: ${sorted[0].region} (${formatFullCurrency(sorted[0].value)})`;
   };
 
-  const CHART_COLORS = ['#C6A96B', '#D9C18A', '#A88B4A', '#806830', '#54441E'];
+  const CHART_COLORS = ['#3b82f6', '#06b6d4', '#60a5fa', '#22d3ee', '#1e40af'];
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
@@ -312,37 +338,37 @@ export const MarketCharts: React.FC<MarketChartsProps> = ({
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
             <div className="flex items-center gap-2">
-              <BarChart3 size={15} className="text-[#C6A96B]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Category Volumes</h3>
+              <BarChart3 size={15} className="text-[#3b82f6]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#f8fafc]">Category Volumes</h3>
             </div>
             {activeCategory && <span className="active-filter-badge">{activeCategory} ✕</span>}
           </div>
           <div className="h-[300px] w-full">
             {categoryData.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#6B665E]">
+              <div className="h-full flex flex-col items-center justify-center text-[#64748b]">
                 <HelpCircle size={24} className="mb-2 opacity-40" /><p className="text-xs">No category data</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="catBarGoldGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#C6A96B" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#C6A96B" stopOpacity={0.2} />
+                    <linearGradient id="catBarBlueGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(198,169,107,0.02)" vertical={false} />
-                  <XAxis dataKey="category" stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.01)" vertical={false} />
+                  <XAxis dataKey="category" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} />
                   <Tooltip content={<CustomCurrencyTooltip />} />
-                  <Bar dataKey="value" fill="url(#catBarGoldGrad)" radius={[2, 2, 0, 0]} cursor="pointer" onClick={handleCategoryBarClick} />
+                  <Bar dataKey="value" fill="url(#catBarBlueGrad)" radius={[2, 2, 0, 0]} cursor="pointer" onClick={handleCategoryBarClick} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
         </div>
-        <div className="border-t border-white/5 pt-3 text-[10px] text-[#A39E93] font-semibold flex items-center gap-1.5">
-          <AlertCircle size={12} className="text-[#C6A96B]" />
+        <div className="border-t border-white/5 pt-3 text-[10px] text-[#94a3b8] font-semibold flex items-center gap-1.5">
+          <AlertCircle size={12} className="text-[#3b82f6]" />
           <span className="truncate">{categoryData.length === 0 ? 'N/A' : getCategoryInsight()}</span>
         </div>
       </div>
@@ -352,37 +378,37 @@ export const MarketCharts: React.FC<MarketChartsProps> = ({
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
             <div className="flex items-center gap-2">
-              <Compass size={15} className="text-[#C6A96B]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Regional Volumes</h3>
+              <Compass size={15} className="text-[#3b82f6]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#f8fafc]">Regional Volumes</h3>
             </div>
             {activeRegion && <span className="active-filter-badge">{activeRegion} ✕</span>}
           </div>
           <div className="h-[300px] w-full">
             {regionData.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#6B665E]">
+              <div className="h-full flex flex-col items-center justify-center text-[#64748b]">
                 <HelpCircle size={24} className="mb-2 opacity-40" /><p className="text-xs">No region data</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={regionData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="regBarGoldGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#A88B4A" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#A88B4A" stopOpacity={0.2} />
+                    <linearGradient id="regBarBlueGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.2} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(198,169,107,0.02)" vertical={false} />
-                  <XAxis dataKey="region" stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#6B665E" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.01)" vertical={false} />
+                  <XAxis dataKey="region" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatCurrency} />
                   <Tooltip content={<CustomCurrencyTooltip />} />
-                  <Bar dataKey="value" fill="url(#regBarGoldGrad)" radius={[2, 2, 0, 0]} cursor="pointer" onClick={handleRegionBarClick} />
+                  <Bar dataKey="value" fill="url(#regBarBlueGrad)" radius={[2, 2, 0, 0]} cursor="pointer" onClick={handleRegionBarClick} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
         </div>
-        <div className="border-t border-white/5 pt-3 text-[10px] text-[#A39E93] font-semibold flex items-center gap-1.5">
-          <AlertCircle size={12} className="text-[#C6A96B]" />
+        <div className="border-t border-white/5 pt-3 text-[10px] text-[#94a3b8] font-semibold flex items-center gap-1.5">
+          <AlertCircle size={12} className="text-[#3b82f6]" />
           <span className="truncate">{regionData.length === 0 ? 'N/A' : getRegionInsight()}</span>
         </div>
       </div>
@@ -392,13 +418,13 @@ export const MarketCharts: React.FC<MarketChartsProps> = ({
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
             <div className="flex items-center gap-2">
-              <PieIcon size={15} className="text-[#C6A96B]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Market Share Distribution</h3>
+              <PieIcon size={15} className="text-[#3b82f6]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#f8fafc]">Market Share Distribution</h3>
             </div>
           </div>
           <div className="h-[230px] w-full relative flex items-center justify-center">
             {categoryPieData.length === 0 ? (
-              <div className="text-[#6B665E] text-xs">No distribution metrics</div>
+              <div className="text-[#64748b] text-xs">No distribution metrics</div>
             ) : (
               <>
                 <ResponsiveContainer width="100%" height="100%">
@@ -412,8 +438,8 @@ export const MarketCharts: React.FC<MarketChartsProps> = ({
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[8px] text-[#6B665E] font-bold uppercase tracking-wider">Total Sales</span>
-                  <span className="text-xs font-extrabold text-[#EAE5DA] mt-0.5">{formatCurrency(totalSalesVal)}</span>
+                  <span className="text-[8px] text-[#64748b] font-bold uppercase tracking-wider">Total Sales</span>
+                  <span className="text-xs font-extrabold text-[#f8fafc] mt-0.5">{formatCurrency(totalSalesVal)}</span>
                 </div>
               </>
             )}
@@ -422,10 +448,10 @@ export const MarketCharts: React.FC<MarketChartsProps> = ({
         {/* Legend */}
         <div className="border-t border-white/5 pt-3 flex flex-wrap gap-2.5 justify-center">
           {categoryPieData.map((item, idx) => (
-            <button key={idx} onClick={() => handleCategoryBarClick(item)} className="flex items-center gap-1.5 text-[9px] font-bold text-[#A39E93] hover:text-[#EAE5DA] transition cursor-pointer">
+            <button key={idx} onClick={() => handleCategoryBarClick(item)} className="flex items-center gap-1.5 text-[9px] font-bold text-[#94a3b8] hover:text-[#f8fafc] transition cursor-pointer">
               <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }} />
               <span>{item.name}:</span>
-              <span className="text-[#EAE5DA]">{item.percent.toFixed(1)}%</span>
+              <span className="text-[#f8fafc]">{item.percent.toFixed(1)}%</span>
             </button>
           ))}
         </div>
@@ -457,7 +483,7 @@ export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
       <div className="gold-card chart-spacious border-red-950/20 text-center text-red-400 flex items-center justify-center min-h-[400px]">
         <div>
           <p className="font-semibold mb-1">Failed to load fulfillment statistics</p>
-          <p className="text-xs text-[#6B665E]">{error}</p>
+          <p className="text-xs text-[#64748b]">{error}</p>
         </div>
       </div>
     );
@@ -467,23 +493,24 @@ export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
 
   const statusData = charts?.orderStatusDistribution || [];
   const pieData = statusData.map(item => ({
-    name: item.status, value: item.count, color: GOLD_PALETTE[item.status] || '#7E786F',
+    name: item.status, value: item.count, color: THEME_PALETTE[item.status] || '#64748b',
   }));
   const totalCount = pieData.reduce((s, i) => s + i.value, 0);
   const formattedPieData = pieData.map(i => ({
     ...i, percent: totalCount > 0 ? (i.value / totalCount) * 100 : 0,
   }));
 
-  // Build backlog timeline count (simulated count changes based on status counts in transaction period)
-  // Group transactions by date to show leakage/backlog trends
+  // Build backlog timeline count with safe string checking
   const dailyDataMap: Record<string, { date: string; pending: number; cancelled: number }> = {};
   transactions.forEach(t => {
-    const day = t.transactionDate.substring(5, 10); // MM-DD
-    if (!dailyDataMap[day]) {
-      dailyDataMap[day] = { date: day, pending: 0, cancelled: 0 };
+    if (t.transactionDate && typeof t.transactionDate === 'string') {
+      const day = t.transactionDate.substring(5, 10); // MM-DD
+      if (!dailyDataMap[day]) {
+        dailyDataMap[day] = { date: day, pending: 0, cancelled: 0 };
+      }
+      if (t.status === 'Pending') dailyDataMap[day].pending += 1;
+      if (t.status === 'Cancelled') dailyDataMap[day].cancelled += 1;
     }
-    if (t.status === 'Pending') dailyDataMap[day].pending += 1;
-    if (t.status === 'Cancelled') dailyDataMap[day].cancelled += 1;
   });
   const backlogTimeline = Object.values(dailyDataMap).sort((a,b) => a.date.localeCompare(b.date)).slice(-12);
 
@@ -509,14 +536,16 @@ export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
             <div className="flex items-center gap-2.5">
-              <PieIcon size={15} className="text-[#C6A96B]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Order Health Status</h3>
+              <PieIcon size={15} className="text-[#3b82f6]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#f8fafc]">Order Health Status</h3>
             </div>
             {activeStatus && <span className="active-filter-badge">{activeStatus} ✕</span>}
           </div>
           <div className="h-[230px] w-full relative flex items-center justify-center">
             {formattedPieData.length === 0 ? (
-              <div className="text-[#6B665E] text-xs">No status distribution data</div>
+              <div className="h-full flex flex-col items-center justify-center text-[#64748b]">
+                <HelpCircle size={24} className="mb-2 opacity-40" /><p className="text-xs">No status distribution data</p>
+              </div>
             ) : (
               <>
                 <ResponsiveContainer width="100%" height="100%">
@@ -530,8 +559,8 @@ export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[8px] text-[#6B665E] font-bold uppercase tracking-wider">Volume</span>
-                  <span className="text-base font-extrabold text-[#EAE5DA] mt-0.5">{formatNumber(totalCount)}</span>
+                  <span className="text-[8px] text-[#64748b] font-bold uppercase tracking-wider">Volume</span>
+                  <span className="text-base font-extrabold text-[#f8fafc] mt-0.5">{formatNumber(totalCount)}</span>
                 </div>
               </>
             )}
@@ -540,10 +569,10 @@ export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
         {/* Legend */}
         <div className="border-t border-white/5 pt-3 flex justify-center gap-4">
           {formattedPieData.map((item, idx) => (
-            <button key={idx} onClick={() => handleStatusClick(item)} className="flex items-center gap-1.5 text-[9px] font-bold text-[#A39E93] hover:text-[#EAE5DA] transition cursor-pointer">
+            <button key={idx} onClick={() => handleStatusClick(item)} className="flex items-center gap-1.5 text-[9px] font-bold text-[#94a3b8] hover:text-[#f8fafc] transition cursor-pointer">
               <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
               <span>{item.name}:</span>
-              <span className="text-[#EAE5DA]">{formatNumber(item.value)}</span>
+              <span className="text-[#f8fafc]">{formatNumber(item.value)}</span>
             </button>
           ))}
         </div>
@@ -554,31 +583,31 @@ export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
             <div className="flex items-center gap-2">
-              <Activity size={14} className="text-[#A88B4A]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Backlog & Leakage Timeline</h3>
+              <Activity size={14} className="text-[#06b6d4]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#f8fafc]">Backlog & Leakage Timeline</h3>
             </div>
           </div>
           <div className="h-[280px] w-full">
             {backlogTimeline.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#6B665E]">
+              <div className="h-full flex flex-col items-center justify-center text-[#64748b]">
                 <HelpCircle size={24} className="mb-2 opacity-40" /><p className="text-xs">No backlog trend data</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={backlogTimeline} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.01)" vertical={false} />
-                  <XAxis dataKey="date" stroke="#6B665E" fontSize={9} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#6B665E" fontSize={9} tickLine={false} axisLine={false} />
+                  <XAxis dataKey="date" stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} />
                   <Tooltip />
-                  <Legend verticalAlign="top" height={32} iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '9px', color: '#A39E93' }} />
-                  <Line type="monotone" dataKey="pending" name="Pending orders" stroke="#A88B4A" strokeWidth={2} dot={{ r: 2 }} />
-                  <Line type="monotone" dataKey="cancelled" name="Cancelled orders" stroke="#6B665E" strokeWidth={1.5} dot={{ r: 2 }} />
+                  <Legend verticalAlign="top" height={32} iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '9px', color: '#94a3b8' }} />
+                  <Line type="monotone" dataKey="pending" name="Pending orders" stroke="#06b6d4" strokeWidth={2} dot={{ r: 2 }} />
+                  <Line type="monotone" dataKey="cancelled" name="Cancelled orders" stroke="#64748b" strokeWidth={1.5} dot={{ r: 2 }} />
                 </LineChart>
               </ResponsiveContainer>
             )}
           </div>
         </div>
-        <div className="text-[10px] text-[#6B665E] border-t border-white/5 pt-3">
+        <div className="text-[10px] text-[#64748b] border-t border-white/5 pt-3">
           Daily snapshot tracking critical pending queue backlogs vs leakage counts.
         </div>
       </div>
@@ -588,46 +617,46 @@ export const FulfillmentChart: React.FC<FulfillmentChartProps> = ({
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
             <div className="flex items-center gap-2">
-              <ShieldCheck size={15} className="text-[#C6A96B]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EAE5DA]">Operational SLA Metrics</h3>
+              <ShieldCheck size={15} className="text-[#3b82f6]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#f8fafc]">Operational SLA Metrics</h3>
             </div>
           </div>
 
           <div className="flex flex-col gap-4">
             {/* Completion Rate */}
-            <div className="p-3.5 rounded-lg bg-[#111111] border border-white/5">
+            <div className="p-3.5 rounded-lg bg-[#0f172a] border border-white/5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-bold text-[#6B665E] uppercase tracking-wider">Fulfillment Health</span>
-                <span className="text-sm font-extrabold text-[#C6A96B]">{completionRate}%</span>
+                <span className="text-[9px] font-bold text-[#64748b] uppercase tracking-wider">Fulfillment Health</span>
+                <span className="text-sm font-extrabold text-[#3b82f6]">{completionRate}%</span>
               </div>
               <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-[#C6A96B] rounded-full" style={{ width: `${completionRate}%` }} />
+                <div className="h-full bg-[#3b82f6] rounded-full" style={{ width: `${completionRate}%` }} />
               </div>
-              <p className="text-[9px] text-[#A39E93] mt-2">{formatNumber(completedCount)} completed / {formatNumber(totalCount)} orders</p>
+              <p className="text-[9px] text-[#94a3b8] mt-2">{formatNumber(completedCount)} completed / {formatNumber(totalCount)} orders</p>
             </div>
 
             {/* Pending Rate */}
-            <div className="p-3.5 rounded-lg bg-[#111111] border border-white/5">
+            <div className="p-3.5 rounded-lg bg-[#0f172a] border border-white/5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-bold text-[#6B665E] uppercase tracking-wider">Pending Backlog SLA</span>
-                <span className="text-sm font-extrabold text-[#A88B4A]">{pendingRate}%</span>
+                <span className="text-[9px] font-bold text-[#64748b] uppercase tracking-wider">Pending Backlog SLA</span>
+                <span className="text-sm font-extrabold text-[#06b6d4]">{pendingRate}%</span>
               </div>
               <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-[#A88B4A] rounded-full" style={{ width: `${pendingRate}%` }} />
+                <div className="h-full bg-[#06b6d4] rounded-full" style={{ width: `${pendingRate}%` }} />
               </div>
-              <p className="text-[9px] text-[#A39E93] mt-2">{formatNumber(pendingCount)} active pending log ticket backlogs</p>
+              <p className="text-[9px] text-[#94a3b8] mt-2">{formatNumber(pendingCount)} active pending log ticket backlogs</p>
             </div>
 
             {/* Cancellation Pressure */}
-            <div className="p-3.5 rounded-lg bg-[#111111] border border-white/5">
+            <div className="p-3.5 rounded-lg bg-[#0f172a] border border-white/5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-bold text-[#6B665E] uppercase tracking-wider">Cancellation Leakage</span>
-                <span className="text-sm font-extrabold text-red-500/80">{cancellationRate}%</span>
+                <span className="text-[9px] font-bold text-[#64748b] uppercase tracking-wider">Cancellation Leakage</span>
+                <span className="text-sm font-extrabold text-[#ef4444]">{cancellationRate}%</span>
               </div>
               <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-red-500/50 rounded-full" style={{ width: `${cancellationRate}%` }} />
+                <div className="h-full bg-[#ef4444] rounded-full" style={{ width: `${cancellationRate}%` }} />
               </div>
-              <p className="text-[9px] text-[#A39E93] mt-2">{formatNumber(cancelledCount)} orders lost to cancel pipelines</p>
+              <p className="text-[9px] text-[#94a3b8] mt-2">{formatNumber(cancelledCount)} orders lost to cancel pipelines</p>
             </div>
           </div>
         </div>
