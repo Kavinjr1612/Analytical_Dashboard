@@ -52,4 +52,12 @@ export interface FilterParams {
   region?: string;
   search?: string;
   status?: string;
+  datasetId?: string;
+}
+
+export interface Dataset {
+  id: string;
+  name: string;
+  importedAt: string;
+  rowCount: number;
 }

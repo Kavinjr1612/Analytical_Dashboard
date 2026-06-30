@@ -7,6 +7,16 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Dataset {
+  id         String        @id @default(uuid()) @db.Uuid
+  name       String
+  importedAt DateTime      @default(now()) @map("imported_at")
+  rowCount   Int           @map("row_count")
+  transactions Transaction[]
+
+  @@map("datasets")
+}
+
 model Transaction {
   id              String   @id @default(uuid()) @db.Uuid
   customerName    String   @map("customer_name")
@@ -16,10 +26,13 @@ model Transaction {
   amount          Decimal  @db.Decimal(10, 2)
   status          String
   transactionDate DateTime @map("transaction_date")
+  datasetId       String   @db.Uuid @map("dataset_id")
+  dataset         Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
   @@index([category])
   @@index([region])
   @@index([transactionDate])
   @@index([status])
+  @@index([datasetId])
   @@map("transactions")
 }

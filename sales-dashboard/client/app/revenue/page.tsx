@@ -1,173 +1,229 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
+import { 
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  BarChart, Bar, LineChart, Line, CartesianGrid, Legend
+} from 'recharts';
+import { TrendingUp, DollarSign, Activity, AlertCircle, TrendingDown } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
-import { RevenueChart } from '../../components/AnalyticsCharts';
-import { DrilldownDrawer, DrilldownData } from '../../components/DrilldownDrawer';
-import { TrendingUp, Activity, ShieldAlert, Award, Calendar } from 'lucide-react';
+import { EmptyStateWrapper } from '../../components/EmptyState';
+
+const formatCurrency = (val: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
 export default function RevenuePage() {
-  const { charts, transactionsResponse, loading, errors, setDateRangeFilter } = useDashboardContext();
-  const [drilldownData, setDrilldownData] = useState<DrilldownData | null>(null);
-
+  const { charts, transactionsResponse, loading, errors } = useDashboardContext();
   const currentTransactions = transactionsResponse?.transactions || [];
 
-  const handleDateFocus = (month: string) => {
-    const dateParts = month.split('-');
-    if (dateParts.length >= 2) {
-      const year = parseInt(dateParts[0]);
-      const monthNum = parseInt(dateParts[1]);
-      const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
-      const lastDay = new Date(year, monthNum, 0).getDate();
-      const endDate = `${year}-${String(monthNum).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-      setDateRangeFilter(startDate, endDate);
-    }
-  };
+  const trendData = charts?.revenueTrend || [];
 
-  // ARR Run Rate Calculations
-  const getARR = () => {
-    if (!charts?.revenueTrend || charts.revenueTrend.length === 0) return '$0';
-    const totalRev = charts.revenueTrend.reduce((s, pt) => s + pt.revenue, 0);
-    // Project annual based on monthly average
-    const avg = totalRev / charts.revenueTrend.length;
-    const arr = avg * 12;
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(arr);
-  };
+  // 1. Calculate Revenue Anomalies
+  // Standard Deviation filter: Flag days/months exceeding 1.8x standard deviation from the mean
+  const anomalies = useMemo(() => {
+    if (trendData.length < 3) return [];
+    const values = trendData.map(d => d.revenue);
+    const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+    const sqDiffs = values.map(v => Math.pow(v - mean, 2));
+    const variance = sqDiffs.reduce((sum, v) => sum + v, 0) / values.length;
+    const stdDev = Math.sqrt(variance);
 
-  const getMoMDelta = () => {
-    if (!charts?.revenueTrend || charts.revenueTrend.length < 2) return { text: '0%', isPositive: true };
-    const sorted = [...charts.revenueTrend].sort((a,b) => a.date.localeCompare(b.date));
-    const len = sorted.length;
-    const curr = sorted[len - 1].revenue;
-    const prev = sorted[len - 2].revenue;
-    if (prev === 0) return { text: '0%', isPositive: true };
-    const delta = ((curr - prev) / prev) * 100;
-    return {
-      text: `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%`,
-      isPositive: delta >= 0
-    };
-  };
+    return trendData
+      .map((d, index) => {
+        const deviation = Math.abs(d.revenue - mean) / (stdDev || 1);
+        return {
+          ...d,
+          deviation,
+          isAnomaly: deviation > 1.8,
+          index
+        };
+      })
+      .filter(d => d.isAnomaly);
+  }, [trendData]);
 
-  const getTopRevenueDays = () => {
-    if (!currentTransactions || currentTransactions.length === 0) return [];
-    // Group transactions by date
-    const dayMap: Record<string, number> = {};
-    currentTransactions.forEach(t => {
-      const date = t.transactionDate.substring(0, 10);
-      dayMap[date] = (dayMap[date] || 0) + Number(t.amount);
+  // 2. Statistical linear regression slope calculation for trend line
+  const regressionData = useMemo(() => {
+    if (trendData.length < 2) return [];
+    const n = trendData.length;
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    trendData.forEach((d, i) => {
+      sumX += i;
+      sumY += d.revenue;
+      sumXY += i * d.revenue;
+      sumXX += i * i;
     });
-    return Object.entries(dayMap)
-      .map(([date, val]) => ({ date, val }))
-      .sort((a, b) => b.val - a.val)
-      .slice(0, 3);
-  };
 
-  const getRevenueForecast = () => {
-    if (!charts?.revenueTrend || charts.revenueTrend.length === 0) return '$0';
-    const lastRev = [...charts.revenueTrend].sort((a,b) => a.date.localeCompare(b.date)).pop()?.revenue || 0;
-    const mom = getMoMDelta();
-    const pct = parseFloat(mom.text) / 100;
-    const forecast = lastRev * (1 + pct);
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(forecast);
-  };
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX || 1);
+    const intercept = (sumY - slope * sumX) / n;
 
-  const delta = getMoMDelta();
+    return trendData.map((d, i) => ({
+      date: d.date,
+      revenue: d.revenue,
+      trend: Math.max(0, slope * i + intercept)
+    }));
+  }, [trendData]);
+
+  // 3. Average Order Value (AOV) trend
+  const monthlyAOV = useMemo(() => {
+    if (!currentTransactions || currentTransactions.length === 0) return [];
+    // Group transactions by month
+    const groups: Record<string, { total: number; count: number }> = {};
+    currentTransactions.forEach(t => {
+      const month = t.transactionDate.substring(0, 7); // YYYY-MM
+      if (!groups[month]) groups[month] = { total: 0, count: 0 };
+      groups[month].total += Number(t.amount);
+      groups[month].count += 1;
+    });
+    return Object.entries(groups)
+      .map(([date, data]) => ({
+        date,
+        aov: data.count > 0 ? Math.round(data.total / data.count) : 0
+      }))
+      .sort((a,b) => a.date.localeCompare(b.date));
+  }, [currentTransactions]);
+
+  const primaryAccent = '#00F2FE';
 
   return (
-    <div className="dashboard-content flex-1 flex flex-col tab-transition">
-      <section id="zone-revenue" className="dashboard-zone flex-1 flex flex-col justify-center min-h-[calc(100vh-140px)]" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-        <div className="zone-inner-expansive shell-container flex-1 flex flex-col justify-between gap-5">
+    <EmptyStateWrapper>
+      <div className="shell-container tab-transition max-w-[1700px] mx-auto flex flex-col gap-6">
+        
+        {/* Row 1: Large Dominant Revenue Trend with Linear Regression line */}
+        <div className="fintech-card h-[380px] flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Revenue War Room</h3>
+              <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
+                Financial trend analytics with linear regression projection
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--text-secondary)] uppercase">
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-[#00F2FE]" /> Ingested Revenue</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded border border-dashed border-[#ff0055]" /> Trend Line</span>
+            </div>
+          </div>
+
+          <div className="flex-1 w-full min-h-0 text-xs">
+            {loading.charts ? (
+              <div className="w-full h-full flex items-center justify-center">Loading charts...</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={regressionData}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={primaryAccent} stopOpacity={0.25}/>
+                      <stop offset="95%" stopColor={primaryAccent} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.1} />
+                  <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} />
+                  <YAxis stroke="var(--text-secondary)" fontSize={9} tickFormatter={(v) => `$${v.toLocaleString()}`} />
+                  <Tooltip 
+                    contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
+                    formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke={primaryAccent} strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" name="Ingested Revenue" />
+                  <Line type="monotone" dataKey="trend" stroke="#ff0055" strokeWidth={1.5} strokeDasharray="5 5" dot={false} name="Regression Trend" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Row 2: 3-column Asymmetric analysis */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
           
-          {/* Split Column Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch flex-1">
-            {/* Left Column (62%): Revenue Visualizers (Area + Ticket comparative) */}
-            <div className="xl:col-span-8 flex flex-col justify-center">
-              <RevenueChart
-                charts={charts}
-                transactions={currentTransactions}
-                isLoading={loading.charts}
-                error={errors.charts}
-                onDateFocus={handleDateFocus}
-                onDrilldown={setDrilldownData}
-              />
+          {/* AOV Trend Chart (col-span-5) */}
+          <div className="xl:col-span-5 fintech-card h-[310px] flex flex-col justify-between">
+            <div>
+              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
+                Average Ticket (AOV) Trend
+              </h4>
+              <p className="text-[9px] text-[var(--text-secondary)] italic">Averaged transaction values per month</p>
+            </div>
+            <div className="flex-1 w-full min-h-0 text-xs mt-4">
+              {monthlyAOV.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-xs text-[var(--text-secondary)]">No transactional details</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyAOV}>
+                    <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} />
+                    <YAxis stroke="var(--text-secondary)" fontSize={9} tickFormatter={(v) => `$${v}`} />
+                    <Tooltip 
+                      contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
+                      formatter={(value: any) => [`$${value}`, 'AOV']}
+                    />
+                    <Bar dataKey="aov" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* Anomaly detector / list (col-span-4) */}
+          <div className="xl:col-span-4 fintech-card h-[310px] flex flex-col justify-between">
+            <div>
+              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
+                Revenue Anomalies Feed
+              </h4>
+              <p className="text-[9px] text-[var(--text-secondary)] italic">Flags periods with standard deviation changes</p>
             </div>
 
-            {/* Right Column (38%): Revenue Metrics Board */}
-            <div className="xl:col-span-4 flex flex-col gap-4 justify-between">
-              {/* Specialized indicators */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* ARR */}
-                <div className="gold-card p-4 bg-[#121b2e] flex flex-col justify-between h-[105px]">
-                  <div className="flex justify-between items-center text-[9px] font-bold text-[#64748b] uppercase tracking-wider">
-                    <span>Projected ARR</span>
-                    <TrendingUp size={12} className="text-[#3b82f6]" />
-                  </div>
-                  <span className="text-xl font-extrabold text-[#f8fafc] mt-2 block tracking-tight">{getARR()}</span>
-                  <span className="text-[9px] text-[#64748b] mt-1">Annualized from active data</span>
+            <div className="flex-1 mt-4 overflow-y-auto space-y-2 custom-scrollbar">
+              {anomalies.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-xs text-[var(--text-secondary)]">
+                  No statistical anomalies detected.
                 </div>
+              ) : (
+                anomalies.map((anom, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-xs p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 hover:border-red-500/25 transition">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-extrabold text-[var(--text-primary)]">{anom.date}</span>
+                      <span className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">
+                        Deviation: {anom.deviation.toFixed(1)}x Standard Devs
+                      </span>
+                    </div>
+                    <span className="text-red-500 font-extrabold flex items-center gap-0.5 text-[11px]">
+                      <AlertCircle size={12} /> {formatCurrency(anom.revenue)}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
-                {/* MoM delta */}
-                <div className="gold-card p-4 bg-[#121b2e] flex flex-col justify-between h-[105px]">
-                  <div className="flex justify-between items-center text-[9px] font-bold text-[#64748b] uppercase tracking-wider">
-                    <span>MoM Growth Delta</span>
-                    <Activity size={12} className="text-[#06b6d4]" />
-                  </div>
-                  <span className={`text-xl font-extrabold mt-2 block tracking-tight ${delta.isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {delta.text}
-                  </span>
-                  <span className="text-[9px] text-[#64748b] mt-1">Growth vs prior month</span>
-                </div>
-
-                {/* Forecast */}
-                <div className="gold-card p-4 bg-[#121b2e] flex flex-col justify-between h-[105px] sm:col-span-2">
-                  <div className="flex justify-between items-center text-[9px] font-bold text-[#64748b] uppercase tracking-wider">
-                    <span>Next-Month Predictive Forecast</span>
-                    <Award size={12} className="text-[#3b82f6]" />
-                  </div>
-                  <div className="flex items-baseline gap-2 mt-2">
-                    <span className="text-xl font-extrabold text-[#f8fafc] tracking-tight">{getRevenueForecast()}</span>
-                    <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-wide">Confidence: HIGH</span>
-                  </div>
-                  <span className="text-[9px] text-[#64748b] mt-1">Modeled from historic trend velocity</span>
-                </div>
+          {/* Forecast quick indicators (col-span-3) */}
+          <div className="xl:col-span-3 fintech-card h-[310px] flex flex-col justify-between">
+            <div>
+              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
+                Forecast Indicators
+              </h4>
+              <p className="text-[9px] text-[var(--text-secondary)] italic">Calculated from rolling average data</p>
+            </div>
+            
+            <div className="space-y-4 my-auto">
+              <div className="p-3 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)]">
+                <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wide">Rolling 3-Period Avg</span>
+                <p className="text-lg font-extrabold text-[var(--text-primary)] mt-1">
+                  {trendData.length >= 3 
+                    ? formatCurrency((trendData[trendData.length-1].revenue + trendData[trendData.length-2].revenue + trendData[trendData.length-3].revenue)/3)
+                    : '$0'
+                  }
+                </p>
               </div>
 
-              {/* Top Revenue Days list */}
-              <div className="gold-card p-5 bg-[#121b2e] flex-1 flex flex-col justify-between min-h-[180px]">
-                <div>
-                  <div className="flex items-center gap-2 pb-2.5 border-b border-white/5 mb-3">
-                    <Calendar size={13} className="text-[#3b82f6]" />
-                    <span className="text-[10px] font-bold text-[#64748b] tracking-wider uppercase">Top Grossing Sales Dates</span>
-                  </div>
-                  <div className="space-y-2.5">
-                    {loading.transactions ? (
-                      <div className="animate-pulse space-y-2">
-                        <div className="h-6 bg-white/5 rounded"></div>
-                        <div className="h-6 bg-white/5 rounded"></div>
-                      </div>
-                    ) : getTopRevenueDays().length === 0 ? (
-                      <div className="text-center text-xs text-[#64748b] py-6">No dates registered</div>
-                    ) : (
-                      getTopRevenueDays().map((d, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-[10.5px] p-2 rounded bg-[#0b0f19] border border-white/2">
-                          <span className="text-[#f8fafc] font-bold">{d.date}</span>
-                          <span className="text-[#3b82f6] font-extrabold">${d.val.toLocaleString()}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-                <div className="text-[9px] text-[#64748b] pt-2 border-t border-white/5 mt-3">
-                  Peak transaction spikes captured in active ledger date bounds.
-                </div>
+              <div className="p-3 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)]">
+                <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wide">Historical Growth Variance</span>
+                <p className="text-lg font-extrabold text-emerald-500 mt-1 flex items-center gap-1">
+                  <TrendingUp size={16} /> Stable
+                </p>
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Drilldown side drawer */}
-      <DrilldownDrawer data={drilldownData} onClose={() => setDrilldownData(null)} />
-    </div>
+        </div>
+
+      </div>
+    </EmptyStateWrapper>
   );
 }

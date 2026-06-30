@@ -4,8 +4,12 @@ import prisma from '../utils/db.js';
 
 // Helper to build search/filter where clause
 const buildFilterWhere = (query: any) => {
-  const { startDate, endDate, category, region, search, status } = query;
+  const { startDate, endDate, category, region, search, status, datasetId } = query;
   const where: any = {};
+
+  if (datasetId && datasetId !== 'all') {
+    where.datasetId = String(datasetId);
+  }
 
   if (category) {
     where.category = String(category);
@@ -103,7 +107,7 @@ export const getSummary = async (req: Request, res: Response) => {
 // GET /api/dashboard/charts
 export const getCharts = async (req: Request, res: Response) => {
   try {
-    const { startDate, endDate, category, region, search } = req.query;
+    const { startDate, endDate, category, region, search, datasetId } = req.query;
     const where = buildFilterWhere(req.query);
 
     // 1. Build revenue trend using SQL group by month/day (PostgreSQL optimized)
@@ -123,6 +127,9 @@ export const getCharts = async (req: Request, res: Response) => {
     // Compile dynamic filters for Raw query (parameterized)
     const whereConditions: Prisma.Sql[] = [];
 
+    if (datasetId && datasetId !== 'all') {
+      whereConditions.push(Prisma.sql`dataset_id = ${datasetId}::uuid`);
+    }
     if (category) {
       whereConditions.push(Prisma.sql`category = ${category}`);
     }
@@ -306,5 +313,82 @@ export const exportTransactions = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error exporting transactions:', error);
     return res.status(500).json({ error: 'Failed to export transactions as CSV.' });
+  }
+};
+
+// GET /api/datasets
+export const getDatasets = async (req: Request, res: Response) => {
+  try {
+    const datasets = await prisma.dataset.findMany({
+      orderBy: { importedAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        importedAt: true,
+        rowCount: true
+      }
+    });
+    return res.json(datasets);
+  } catch (error: any) {
+    console.error('Error fetching datasets:', error);
+    return res.status(500).json({ error: 'Failed to fetch datasets list.' });
+  }
+};
+
+// DELETE /api/datasets/:id
+export const deleteDataset = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.dataset.delete({
+      where: { id }
+    });
+    return res.json({ success: true });
+  } catch (error: any) {
+    console.error('Error deleting dataset:', error);
+    return res.status(500).json({ error: 'Failed to delete dataset.' });
+  }
+};
+
+// POST /api/datasets/import
+export const importDataset = async (req: Request, res: Response) => {
+  try {
+    const { name, transactions } = req.body;
+    if (!name || !Array.isArray(transactions) || transactions.length === 0) {
+      return res.status(400).json({ error: 'Invalid dataset payload. Please provide a name and transaction rows.' });
+    }
+
+    // Create Dataset record first
+    const dataset = await prisma.dataset.create({
+      data: {
+        name,
+        rowCount: transactions.length
+      }
+    });
+
+    // Prepare transactions for bulk insert
+    const dataToInsert = transactions.map((t: any) => ({
+      customerName: String(t.customerName || t.customer || ''),
+      productName: String(t.productName || t.product || ''),
+      category: String(t.category || ''),
+      region: String(t.region || ''),
+      amount: new Prisma.Decimal(Number(t.amount || t.revenue || 0)),
+      status: String(t.status || 'Completed'),
+      transactionDate: t.transactionDate || t.timestamps ? new Date(t.transactionDate || t.timestamps) : new Date(),
+      datasetId: dataset.id
+    }));
+
+    // Bulk insert transactions in chunks to prevent database payload limits
+    const chunkSize = 2000;
+    for (let i = 0; i < dataToInsert.length; i += chunkSize) {
+      const chunk = dataToInsert.slice(i, i + chunkSize);
+      await prisma.transaction.createMany({
+        data: chunk
+      });
+    }
+
+    return res.json(dataset);
+  } catch (error: any) {
+    console.error('Error importing dataset:', error);
+    return res.status(500).json({ error: 'Failed to import dataset and transactions.' });
   }
 };

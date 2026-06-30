@@ -3,10 +3,18 @@ import {
   getSummary,
   getCharts,
   getTransactions,
-  exportTransactions
+  exportTransactions,
+  getDatasets,
+  deleteDataset,
+  importDataset
 } from '../controllers/transactionController.js';
 
 const router = Router();
+
+// Dataset import & management
+router.get('/datasets', getDatasets);
+router.post('/datasets/import', importDataset);
+router.delete('/datasets/:id', deleteDataset);
 
 // Dashboard summary stats
 router.get('/dashboard/summary', getSummary);
