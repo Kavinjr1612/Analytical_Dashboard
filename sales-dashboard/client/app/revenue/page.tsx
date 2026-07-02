@@ -105,7 +105,7 @@ export default function RevenuePage() {
             <div>
               <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
                 <span>Revenue War Room</span>
-                <HelpCircle size={11} className="opacity-60 cursor-help" title="Visualizes gross sales over time with linear trend line projection overlay." />
+                <span title="Visualizes gross sales over time with linear trend line projection overlay."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Financial trend analytics with linear regression projection
@@ -152,7 +152,7 @@ export default function RevenuePage() {
             <div>
               <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1 flex items-center gap-1">
                 <span>Average Ticket (AOV) Trend</span>
-                <HelpCircle size={10} className="opacity-60 cursor-help" title="Measures the average spend per order (Total Revenue / Total Orders)." />
+                <span title="Measures the average spend per order (Total Revenue / Total Orders)."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Averaged transaction values per month</p>
             </div>
@@ -180,7 +180,7 @@ export default function RevenuePage() {
             <div>
               <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1 flex items-center gap-1">
                 <span>Revenue Anomalies Feed</span>
-                <HelpCircle size={10} className="opacity-60 cursor-help" title="Flags dates where gross revenue deviated by more than 1.8x the standard deviation from the mean." />
+                <span title="Flags dates where gross revenue deviated by more than 1.8x the standard deviation from the mean."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Flags periods with standard deviation changes</p>
             </div>

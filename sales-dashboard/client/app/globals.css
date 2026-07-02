@@ -80,6 +80,8 @@ body {
   display: flex;
   flex-direction: column;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
+  contain: layout style;
 }
 
 .sidebar-expanded {
@@ -94,11 +96,13 @@ body {
 .main-layout-offset-expanded {
   margin-left: var(--sidebar-width);
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: margin-left;
 }
 
 .main-layout-offset-collapsed {
   margin-left: 76px;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: margin-left;
 }
 
 @media (max-width: 1023px) {

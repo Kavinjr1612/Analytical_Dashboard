@@ -153,7 +153,7 @@ export default function CustomersPage() {
             <div>
               <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
                 <span>MoM Client Retention Curve</span>
-                <HelpCircle size={11} className="opacity-60 cursor-help" title="Tracks the lifetime decay of customer purchase frequency over monthly offsets." />
+                <span title="Tracks the lifetime decay of customer purchase frequency over monthly offsets."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Cohort decay analysis indicating customer lifetime return rates
@@ -181,7 +181,7 @@ export default function CustomersPage() {
             <div>
               <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
                 <span>Loyalty Ratio Index</span>
-                <HelpCircle size={11} className="opacity-60 cursor-help" title="Measures the fraction of buyers with >1 transactions against total unique customer count." />
+                <span title="Measures the fraction of buyers with >1 transactions against total unique customer count."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Calculates ratio of repeat customers against total buyers

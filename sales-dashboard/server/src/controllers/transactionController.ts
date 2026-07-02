@@ -95,6 +95,7 @@ export const getSummary = async (req: Request, res: Response) => {
     const topSellingCategory = categoryAggregate[0]?.category || 'N/A';
     const bestPerformingRegion = regionAggregate[0]?.region || 'N/A';
 
+    res.set('Cache-Control', 'private, max-age=30');
     return res.json({
       totalRevenue,
       totalOrders,
@@ -220,6 +221,7 @@ export const getCharts = async (req: Request, res: Response) => {
       count: row._count.id
     }));
 
+    res.set('Cache-Control', 'private, max-age=30');
     return res.json({
       revenueTrend,
       salesByCategory,
@@ -378,7 +380,7 @@ export const importDataset = async (req: Request, res: Response) => {
       region: String(t.region || ''),
       amount: new Prisma.Decimal(Number(t.amount || t.revenue || 0)),
       status: String(t.status || 'Completed'),
-      transactionDate: t.transactionDate || t.timestamps ? new Date(t.transactionDate || t.timestamps) : new Date(),
+      transactionDate: (t.transactionDate || t.timestamps) ? new Date(t.transactionDate || t.timestamps) : new Date(),
       datasetId: dataset.id
     }));
 

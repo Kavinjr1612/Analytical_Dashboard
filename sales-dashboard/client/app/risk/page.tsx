@@ -100,7 +100,7 @@ export default function RiskPage() {
             <div className="flex justify-between items-center mb-3">
               <span className="metric-label flex items-center gap-1">
                 <span>System Risk Index</span>
-                <HelpCircle size={10} className="opacity-60 cursor-help" title="Calculates operational load: (Cancelled*1.5 + Pending*0.8) / Total * 100." />
+                <span title="Calculates operational load: (Cancelled*1.5 + Pending*0.8) / Total * 100."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </span>
               <ShieldAlert className="text-red-500" size={16} />
             </div>
@@ -120,7 +120,7 @@ export default function RiskPage() {
             <div className="flex justify-between items-center mb-3">
               <span className="metric-label flex items-center gap-1">
                 <span>Revenue Leakage</span>
-                <HelpCircle size={10} className="opacity-60 cursor-help" title="Sum of transaction amounts for items whose status is Cancelled." />
+                <span title="Sum of transaction amounts for items whose status is Cancelled."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </span>
               <XCircle className="text-red-500" size={16} />
             </div>

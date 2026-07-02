@@ -32,19 +32,27 @@ export const NavigationRail: React.FC = () => {
   const pathname = usePathname();
   const { isSidebarCollapsed, toggleSidebar } = useDashboardContext();
   const [scrollProgress, setScrollProgress] = useState(0);
+  const rafRef = React.useRef<number | null>(null);
 
-  // Track scroll progress of the active page
+  // Track scroll progress of the active page (throttled via rAF)
   const handleScroll = useCallback(() => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
-    setScrollProgress(progress);
+    if (rafRef.current) return; // skip if frame already scheduled
+    rafRef.current = requestAnimationFrame(() => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+      setScrollProgress(progress);
+      rafRef.current = null;
+    });
   }, []);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, [handleScroll, pathname]);
 
   return (

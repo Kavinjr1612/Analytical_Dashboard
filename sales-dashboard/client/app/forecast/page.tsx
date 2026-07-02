@@ -76,12 +76,12 @@ export default function ForecastPage() {
     const nextDates = generateNextDates(lastDate, 3);
     
     // Historic values merged with forecast projection values
-    const chartPoints = trendData.map((d, i) => ({
+    const chartPoints: { date: string; historical: number | null; forecast: number | null; upperBound: number | null; lowerBound: number | null }[] = trendData.map((d, i) => ({
       date: d.date,
       historical: d.revenue,
-      forecast: null,
-      upperBound: null,
-      lowerBound: null,
+      forecast: null as number | null,
+      upperBound: null as number | null,
+      lowerBound: null as number | null,
     }));
 
     // Connect forecast start point to last historical date
@@ -166,7 +166,7 @@ export default function ForecastPage() {
                   <div>
                     <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
                       <span>Predictive Growth Cone</span>
-                      <HelpCircle size={11} className="opacity-60 cursor-help" title="Projects sales trends with standard error boundaries representing statistical variance." />
+                      <span title="Projects sales trends with standard error boundaries representing statistical variance."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
                     </h3>
                     <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                       Linear regression forecast with standard error confidence boundaries

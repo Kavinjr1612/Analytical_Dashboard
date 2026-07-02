@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { 
   UploadCloud, AlertTriangle, CheckCircle, Database, 
   Play, FileText, Trash2, Calendar, RefreshCw 
@@ -32,7 +32,7 @@ interface ColumnMapping {
 export default function DataIntakePage() {
   const { 
     datasets, uploadDataset, removeDataset, 
-    setDatasetFilter, loading, refetchAll 
+    setDatasetFilter, loading 
   } = useDashboardContext();
 
   const [file, setFile] = useState<File | null>(null);
@@ -53,10 +53,7 @@ export default function DataIntakePage() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Load datasets on mount
-  useEffect(() => {
-    refetchAll();
-  }, []);
+  // Datasets auto-load via useDashboard; no manual refetch needed on mount
 
   // Schema profiles (saved mappings in localStorage)
   const saveSchemaProfile = (headers: string[], mapping: ColumnMapping) => {

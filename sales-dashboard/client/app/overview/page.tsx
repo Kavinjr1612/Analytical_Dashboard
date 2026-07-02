@@ -167,7 +167,7 @@ export default function OverviewPage() {
           <div className="xl:col-span-6 fintech-card h-[340px] flex flex-col">
             <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
               <span>Ingestion Revenue trend</span>
-              <HelpCircle size={10} className="opacity-60 cursor-help" title="Shows monthly or daily aggregate revenue patterns from active spreadsheets." />
+              <span title="Shows monthly or daily aggregate revenue patterns from active spreadsheets."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
             </h4>
             <div className="flex-1 w-full min-h-0 text-xs">
               <ResponsiveContainer width="100%" height="100%">
@@ -194,7 +194,7 @@ export default function OverviewPage() {
           <div className="xl:col-span-3 fintech-card h-[340px] flex flex-col">
             <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
               <span>Regional Revenue Rank</span>
-              <HelpCircle size={10} className="opacity-60 cursor-help" title="Compares total gross sales revenue segmented by operating territories." />
+              <span title="Compares total gross sales revenue segmented by operating territories."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
             </h4>
             <div className="flex-1 w-full min-h-0 text-xs">
               <ResponsiveContainer width="100%" height="100%">
@@ -205,7 +205,7 @@ export default function OverviewPage() {
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                     formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
                   />
-                  <Bar dataKey="value" fill={primaryAccent} radius={[0, 4, 4, 0]} onClick={(data) => data && setRegionFilter(data.region)}>
+                  <Bar dataKey="value" fill={primaryAccent} radius={[0, 4, 4, 0]} onClick={(data: any) => data && setRegionFilter(data.region)}>
                     {(charts?.salesByRegion || []).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
                     ))}
@@ -219,7 +219,7 @@ export default function OverviewPage() {
           <div className="xl:col-span-3 fintech-card h-[340px] flex flex-col">
             <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
               <span>Category volume share</span>
-              <HelpCircle size={10} className="opacity-60 cursor-help" title="Pie breakdown visualizing product categories sorted by share size." />
+              <span title="Pie breakdown visualizing product categories sorted by share size."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
             </h4>
             <div className="flex-1 w-full min-h-0 text-xs relative flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
@@ -233,8 +233,8 @@ export default function OverviewPage() {
                     paddingAngle={3}
                     dataKey="value"
                     nameKey="category"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    onClick={(data) => data && setCategoryFilter(data.category)}
+                    label={({ name, percent }) => name && percent !== undefined ? `${name} ${(percent * 100).toFixed(0)}%` : name || ''}
+                    onClick={(data: any) => data && setCategoryFilter(data.category)}
                   >
                     {(charts?.salesByCategory || []).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />

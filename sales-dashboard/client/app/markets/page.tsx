@@ -182,7 +182,7 @@ export default function MarketsPage() {
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                     formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
                   />
-                  <Bar dataKey="value" fill="var(--accent-color)" radius={[4, 4, 0, 0]} onClick={(data) => data && setCategoryFilter(data.category)}>
+                  <Bar dataKey="value" fill="var(--accent-color)" radius={[4, 4, 0, 0]} onClick={(data: any) => data && setCategoryFilter(data.category)}>
                     {categoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
                     ))}

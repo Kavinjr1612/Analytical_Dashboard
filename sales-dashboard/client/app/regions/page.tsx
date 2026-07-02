@@ -101,7 +101,7 @@ export default function RegionsPage() {
             <div>
               <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
                 <span>Regional Revenue Volume</span>
-                <HelpCircle size={11} className="opacity-60 cursor-help" title="Bar rankings showing total gross revenue generated in each active region." />
+                <span title="Bar rankings showing total gross revenue generated in each active region."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Sales rankings by geographical operating divisions
@@ -120,7 +120,7 @@ export default function RegionsPage() {
                       contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                       formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
                     />
-                    <Bar dataKey="value" fill="var(--accent-color)" radius={[4, 4, 0, 0]} onClick={(data) => data && setRegionFilter(data.region)}>
+                    <Bar dataKey="value" fill="var(--accent-color)" radius={[4, 4, 0, 0]} onClick={(data: any) => data && setRegionFilter(data.region)}>
                       {regionData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
                       ))}
@@ -136,7 +136,7 @@ export default function RegionsPage() {
             <div>
               <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
                 <span>Geographical Distribution</span>
-                <HelpCircle size={11} className="opacity-60 cursor-help" title="Radar spreads showing variance and concentrations of territory revenue." />
+                <span title="Radar spreads showing variance and concentrations of territory revenue."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Radar spread visualizing regional concentration
@@ -148,7 +148,7 @@ export default function RegionsPage() {
                 <div className="text-xs text-[var(--text-secondary)] italic">Radar requires at least 3 regions.</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" radius="70%" data={regionData}>
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={regionData}>
                     <PolarGrid stroke="var(--border-color)" opacity={0.15} />
                     <PolarAngleAxis dataKey="region" stroke="var(--text-secondary)" fontSize={9} />
                     <PolarRadiusAxis stroke="var(--text-secondary)" fontSize={8} />
