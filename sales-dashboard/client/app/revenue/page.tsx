@@ -82,6 +82,48 @@ export default function RevenuePage() {
       .sort((a,b) => a.date.localeCompare(b.date));
   }, [currentTransactions]);
 
+  const revenueYDomain = useMemo<any>(() => {
+    if (regressionData.length === 0) return [0, 'auto'];
+    const values = regressionData.map((d: any) => Number(d.revenue || 0));
+    const trendValues = regressionData.map((d: any) => Number(d.trend || 0));
+    const allValues = [...values, ...trendValues];
+    const minVal = Math.min(...allValues);
+    const maxVal = Math.max(...allValues);
+    const spread = maxVal - minVal;
+    
+    if (spread === 0) {
+      return [
+        Math.max(0, Math.floor(minVal * 0.95)),
+        Math.ceil(minVal * 1.05)
+      ];
+    }
+    
+    return [
+      Math.max(0, Math.floor(minVal - (spread * 0.08))),
+      Math.ceil(maxVal + (spread * 0.08))
+    ];
+  }, [regressionData]);
+
+  const aovYDomain = useMemo<any>(() => {
+    if (monthlyAOV.length === 0) return [0, 'auto'];
+    const values = monthlyAOV.map((d: any) => Number(d.aov || 0));
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    const spread = maxVal - minVal;
+    
+    if (spread === 0) {
+      return [
+        Math.max(0, Math.floor(minVal * 0.95)),
+        Math.ceil(minVal * 1.05)
+      ];
+    }
+    
+    return [
+      Math.max(0, Math.floor(minVal - (spread * 0.08))),
+      Math.ceil(maxVal + (spread * 0.08))
+    ];
+  }, [monthlyAOV]);
+
   const primaryAccent = '#22D3EE'; // Cyan
 
   return (
@@ -135,10 +177,7 @@ export default function RevenuePage() {
                     stroke="var(--text-secondary)" 
                     fontSize={9} 
                     tickFormatter={(v) => `$${v.toLocaleString()}`}
-                    domain={[
-                      (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
-                      (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
-                    ]}
+                    domain={revenueYDomain}
                   />
                   <Tooltip 
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
@@ -175,10 +214,7 @@ export default function RevenuePage() {
                       stroke="var(--text-secondary)" 
                       fontSize={9} 
                       tickFormatter={(v) => `$${v}`}
-                      domain={[
-                        (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
-                        (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
-                      ]}
+                      domain={aovYDomain}
                     />
                     <Tooltip 
                       contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}

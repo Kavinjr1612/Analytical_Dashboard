@@ -63,8 +63,8 @@ export const NavigationRail: React.FC = () => {
         aria-label="Dashboard sections"
       >
         {/* Sidebar Logo Header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-[var(--border-color)]">
-          <div className="flex items-center gap-3 overflow-hidden">
+        <div className={`h-[88px] flex items-center border-b border-[var(--border-color)] ${isSidebarCollapsed ? 'px-3 justify-center gap-1.5' : 'px-5 justify-between'}`}>
+          <div className="flex items-center gap-3 overflow-hidden flex-shrink-0">
             <div className="w-7 h-7 rounded bg-[var(--accent-color)] flex items-center justify-center flex-shrink-0 text-white font-bold text-sm shadow-md">
               A
             </div>
@@ -76,7 +76,7 @@ export const NavigationRail: React.FC = () => {
           </div>
           <button 
             onClick={toggleSidebar}
-            className="p-1 rounded hover:bg-[rgba(148,163,184,0.1)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
+            className="p-1.5 rounded hover:bg-[rgba(148,163,184,0.1)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition flex-shrink-0"
           >
             {isSidebarCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
           </button>

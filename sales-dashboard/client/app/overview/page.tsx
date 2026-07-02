@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, PieChart, Pie
@@ -44,6 +44,28 @@ export default function OverviewPage() {
     const rev = formatCurrency(summary.totalRevenue);
     return `Analysis detects total consolidated revenue of ${rev} across ${formatNumber(summary.totalOrders)} transaction logs. Core market dominance is led by the ${summary.topSellingCategory} category segment, while the ${summary.bestPerformingRegion} region is identified as the highest-performing operations node. Strategic command confirms overall operational SLA levels are steady.`;
   };
+
+  // Calculate dynamic Y-axis domain based on exact data spread
+  const revenueTrendData = charts?.revenueTrend || [];
+  const yDomain = useMemo<any>(() => {
+    if (revenueTrendData.length === 0) return [0, 'auto'];
+    const values = revenueTrendData.map((d: any) => Number(d.revenue || 0));
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    const spread = maxVal - minVal;
+    
+    if (spread === 0) {
+      return [
+        Math.max(0, Math.floor(minVal * 0.95)),
+        Math.ceil(minVal * 1.05)
+      ];
+    }
+    
+    return [
+      Math.max(0, Math.floor(minVal - (spread * 0.08))),
+      Math.ceil(maxVal + (spread * 0.08))
+    ];
+  }, [revenueTrendData]);
 
   // Recharts color palettes mapped to dark/light variables
   const primaryAccent = '#22D3EE'; // Cyan
@@ -183,10 +205,7 @@ export default function OverviewPage() {
                     stroke="var(--text-secondary)" 
                     fontSize={9} 
                     tickFormatter={(v) => `$${v.toLocaleString()}`}
-                    domain={[
-                      (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
-                      (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
-                    ]}
+                    domain={yDomain}
                   />
                   <Tooltip 
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}

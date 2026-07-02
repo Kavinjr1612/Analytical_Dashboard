@@ -1,24 +1,18 @@
 import { FilterParams, DashboardSummary, DashboardCharts, Transaction, Dataset } from '../types';
 
 function getApiUrl(path: string): string {
-  let base = 'http://127.0.0.1:5000/api';
+  let base = 'http://localhost:5000/api';
   
   if (typeof window !== 'undefined') {
     let hostname = window.location.hostname;
-    if (hostname === 'localhost') {
-      hostname = '127.0.0.1';
+    if (hostname === '127.0.0.1' || hostname === 'localhost' || hostname === '::1') {
+      hostname = 'localhost';
     }
     base = `http://${hostname}:5000/api`;
   }
   
-  // If env variable is explicitly provided, honor it
   if (process.env.NEXT_PUBLIC_API_URL) {
     base = process.env.NEXT_PUBLIC_API_URL;
-  }
-
-  // Force-swap localhost to 127.0.0.1 to avoid Windows DNS resolution bugs
-  if (base.includes('localhost')) {
-    base = base.replace('localhost', '127.0.0.1');
   }
   
   return `${base}${path}`;

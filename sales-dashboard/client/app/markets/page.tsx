@@ -49,6 +49,26 @@ export default function MarketsPage() {
     }));
   }, [categoryData]);
 
+  const categoryYDomain = useMemo<any>(() => {
+    if (categoryData.length === 0) return [0, 'auto'];
+    const values = categoryData.map((d: any) => Number(d.value || 0));
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    const spread = maxVal - minVal;
+    
+    if (spread === 0) {
+      return [
+        Math.max(0, Math.floor(minVal * 0.95)),
+        Math.ceil(minVal * 1.05)
+      ];
+    }
+    
+    return [
+      Math.max(0, Math.floor(minVal - (spread * 0.08))),
+      Math.ceil(maxVal + (spread * 0.08))
+    ];
+  }, [categoryData]);
+
   // Colors list
   const colorsList = ['#22D3EE', '#6366F1', '#10B981', '#F59E0B', '#F43F5E'];
 
@@ -181,10 +201,7 @@ export default function MarketsPage() {
                     stroke="var(--text-secondary)" 
                     fontSize={9} 
                     tickFormatter={(v) => `$${v.toLocaleString()}`}
-                    domain={[
-                      (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
-                      (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
-                    ]}
+                    domain={categoryYDomain}
                   />
                   <Tooltip 
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}

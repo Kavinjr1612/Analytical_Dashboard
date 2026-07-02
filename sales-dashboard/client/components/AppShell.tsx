@@ -115,13 +115,14 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
 
               {/* Search box */}
               <div className="relative">
-                <Search className="absolute left-3.5 top-[15px] text-[var(--text-secondary)]" size={13} />
+                <Search className="absolute left-3.5 top-[15.5px] text-[var(--text-secondary)]" size={13} />
                 <input
                   type="text"
                   placeholder="Search transactions..."
                   value={searchVal}
                   onChange={(e) => setSearchVal(e.target.value)}
-                  className="fintech-input pl-10 pr-4 w-[230px] h-11 text-xs font-medium bg-[var(--bg-color)]/30 border-[var(--border-color)] hover:border-[var(--accent-color)]/35 focus:bg-[var(--surface-color)]"
+                  style={{ paddingLeft: '40px' }}
+                  className="fintech-input pr-4 w-[230px] h-11 text-xs font-medium bg-[var(--bg-color)]/30 border-[var(--border-color)] hover:border-[var(--accent-color)]/35 focus:bg-[var(--surface-color)]"
                 />
               </div>
 
@@ -186,7 +187,7 @@ const ShellContent: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
         <footer className="py-6 border-t border-[var(--border-color)] text-center mt-auto">
           <p className="text-[11px] text-[var(--text-secondary)]">
-            Analytical Console &copy; {new Date().getFullYear()} Auro Studios. All rights reserved.
+            Analytical Console &copy; {new Date().getFullYear()} Auro Analytics. All rights reserved.
           </p>
         </footer>
       </div>

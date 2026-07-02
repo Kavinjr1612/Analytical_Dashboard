@@ -133,6 +133,38 @@ export default function ForecastPage() {
     };
   }, [trendData, transactionsResponse]);
 
+  const forecastYDomain = useMemo<any>(() => {
+    if (!forecastAnalytics || !forecastAnalytics.chartPoints || forecastAnalytics.chartPoints.length === 0) {
+      return [0, 'auto'];
+    }
+    const points = forecastAnalytics.chartPoints;
+    const allValues: number[] = [];
+    points.forEach((p: any) => {
+      if (p.historical !== null && p.historical !== undefined) allValues.push(Number(p.historical));
+      if (p.forecast !== null && p.forecast !== undefined) allValues.push(Number(p.forecast));
+      if (p.upperBound !== null && p.upperBound !== undefined) allValues.push(Number(p.upperBound));
+      if (p.lowerBound !== null && p.lowerBound !== undefined) allValues.push(Number(p.lowerBound));
+    });
+    
+    if (allValues.length === 0) return [0, 'auto'];
+    
+    const minVal = Math.min(...allValues);
+    const maxVal = Math.max(...allValues);
+    const spread = maxVal - minVal;
+    
+    if (spread === 0) {
+      return [
+        Math.max(0, Math.floor(minVal * 0.95)),
+        Math.ceil(minVal * 1.05)
+      ];
+    }
+    
+    return [
+      Math.max(0, Math.floor(minVal - (spread * 0.08))),
+      Math.ceil(maxVal + (spread * 0.08))
+    ];
+  }, [forecastAnalytics]);
+
   return (
     <EmptyStateWrapper>
       <div className="shell-container tab-transition max-w-[1700px] mx-auto flex flex-col gap-6">
@@ -198,10 +230,7 @@ export default function ForecastPage() {
                           stroke="var(--text-secondary)" 
                           fontSize={9} 
                           tickFormatter={(v) => `$${v.toLocaleString()}`}
-                          domain={[
-                            (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
-                            (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
-                          ]}
+                          domain={forecastYDomain}
                         />
                         <Tooltip 
                           contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
