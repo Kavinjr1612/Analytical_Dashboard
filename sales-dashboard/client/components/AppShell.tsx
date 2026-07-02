@@ -18,11 +18,12 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
     setDateRangeFilter, handleExport 
   } = useDashboardContext();
 
-  // Hide Top Context Bar on the Data Intake (/) upload route
-  if (pathname === '/') return null;
+  const isHome = pathname === '/';
 
   const getPageTitle = () => {
     switch (pathname) {
+      case '/':
+        return 'Data Intake Portal';
       case '/overview':
         return 'Overview Cockpit';
       case '/revenue':
@@ -59,89 +60,95 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
             <h2 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
               {getPageTitle()}
             </h2>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <Database size={10} className="text-[var(--accent-color)]" />
-              <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                Dataset: {activeDatasetName}
-              </span>
-            </div>
+            {!isHome && (
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <Database size={10} className="text-[var(--accent-color)]" />
+                <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                  Dataset: {activeDatasetName}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Global Controls */}
         <div className="flex flex-wrap items-center gap-3.5">
-          {/* Dataset Switcher */}
-          <div className="flex items-center gap-1.5">
-            <select
-              value={filters.datasetId || 'all'}
-              onChange={(e) => setDatasetFilter(e.target.value)}
-              className="fintech-select py-1.5 px-2.5 text-xs font-semibold"
-            >
-              <option value="all">Combine All Datasets</option>
-              {datasets.map(d => (
-                <option key={d.id} value={d.id}>
-                  {d.name} ({d.rowCount.toLocaleString()} rows)
-                </option>
-              ))}
-            </select>
-          </div>
+          {!isHome && (
+            <>
+              {/* Dataset Switcher */}
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={filters.datasetId || 'all'}
+                  onChange={(e) => setDatasetFilter(e.target.value)}
+                  className="fintech-select py-1.5 px-2.5 text-xs font-semibold"
+                >
+                  <option value="all">Combine All Datasets</option>
+                  {datasets.map(d => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} ({d.rowCount.toLocaleString()} rows)
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {/* Date Picker Range */}
-          <div className="flex items-center gap-1">
-            <Calendar size={12} className="text-[var(--text-secondary)]" />
-            <input
-              type="date"
-              value={filters.startDate || ''}
-              onChange={(e) => setDateRangeFilter(e.target.value, filters.endDate || '')}
-              className="fintech-input py-1 px-1.5 text-[11px] font-semibold w-[105px]"
-            />
-            <span className="text-[var(--text-secondary)] text-[10px]">→</span>
-            <input
-              type="date"
-              value={filters.endDate || ''}
-              onChange={(e) => setDateRangeFilter(filters.startDate || '', e.target.value)}
-              className="fintech-input py-1 px-1.5 text-[11px] font-semibold w-[105px]"
-            />
-          </div>
+              {/* Date Picker Range */}
+              <div className="flex items-center gap-1">
+                <Calendar size={12} className="text-[var(--text-secondary)]" />
+                <input
+                  type="date"
+                  value={filters.startDate || ''}
+                  onChange={(e) => setDateRangeFilter(e.target.value, filters.endDate || '')}
+                  className="fintech-input py-1 px-1.5 text-[11px] font-semibold w-[105px]"
+                />
+                <span className="text-[var(--text-secondary)] text-[10px]">→</span>
+                <input
+                  type="date"
+                  value={filters.endDate || ''}
+                  onChange={(e) => setDateRangeFilter(filters.startDate || '', e.target.value)}
+                  className="fintech-input py-1 px-1.5 text-[11px] font-semibold w-[105px]"
+                />
+              </div>
 
-          {/* Search box */}
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 text-[var(--text-secondary)]" size={13} />
-            <input
-              type="text"
-              placeholder="Search data..."
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              className="fintech-input pl-8 py-1.5 w-[140px] text-xs font-semibold"
-            />
-          </div>
+              {/* Search box */}
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 text-[var(--text-secondary)]" size={13} />
+                <input
+                  type="text"
+                  placeholder="Search data..."
+                  value={searchVal}
+                  onChange={(e) => setSearchVal(e.target.value)}
+                  className="fintech-input pl-8 py-1.5 w-[140px] text-xs font-semibold"
+                />
+              </div>
 
-          {/* Data Dictionary Toggler */}
-          <button
-            onClick={onOpenGlossary}
-            className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-color)] hover:bg-[rgba(148,163,184,0.05)] rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs transition cursor-pointer"
-            title="Open Data Glossary"
-          >
-            <BookOpen size={12} />
-            Dictionary
-          </button>
+              {/* Data Dictionary Toggler */}
+              <button
+                onClick={onOpenGlossary}
+                className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-color)] hover:bg-[rgba(148,163,184,0.05)] rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs transition cursor-pointer"
+                title="Open Data Glossary"
+              >
+                <BookOpen size={12} />
+                Dictionary
+              </button>
 
-          {/* Theme Toggler */}
+              {/* Export Button */}
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-[var(--accent-color)] rounded-lg shadow-sm hover:opacity-90 transition active:scale-95 cursor-pointer"
+              >
+                <Download size={12} />
+                Export
+              </button>
+            </>
+          )}
+
+          {/* Theme Toggler (Always at absolute right) */}
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg border border-[var(--border-color)] hover:bg-[rgba(148,163,184,0.05)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-          </button>
-
-          {/* Export Button */}
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-[var(--accent-color)] rounded-lg shadow-sm hover:opacity-90 transition active:scale-95 cursor-pointer"
-          >
-            <Download size={12} />
-            Export
           </button>
         </div>
       </div>
