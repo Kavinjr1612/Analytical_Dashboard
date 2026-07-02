@@ -32,7 +32,7 @@ interface ColumnMapping {
 export default function DataIntakePage() {
   const { 
     datasets, uploadDataset, removeDataset, 
-    setDatasetFilter, loading 
+    setDatasetFilter, loading, filters 
   } = useDashboardContext();
 
   const [file, setFile] = useState<File | null>(null);
@@ -298,46 +298,59 @@ export default function DataIntakePage() {
     window.location.href = '/overview';
   };
 
+  // Compute Quick Stats
+  const totalAccumulatedRows = datasets.reduce((sum, d) => sum + d.rowCount, 0);
+  const avgDatasetRows = datasets.length > 0 ? Math.round(totalAccumulatedRows / datasets.length) : 0;
+  const latestDataset = datasets.length > 0 
+    ? [...datasets].sort((a, b) => new Date(b.importedAt).getTime() - new Date(a.importedAt).getTime())[0] 
+    : null;
+
   return (
     <div className="shell-container tab-transition max-w-[1700px] mx-auto pt-6">
       
       {/* Dynamic Alert Info */}
       {errorMsg && (
-        <div className="mb-5 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold flex items-center gap-2">
+        <div className="mb-5 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-semibold flex items-center gap-2">
           <AlertTriangle size={14} />
           {errorMsg}
         </div>
       )}
 
       {uploadSuccess && (
-        <div className="mb-5 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold flex items-center gap-2">
+        <div className="mb-5 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold flex items-center gap-2">
           <CheckCircle size={14} />
           Dataset imported successfully! Navigate to routes in the sidebar to review metrics.
         </div>
       )}
 
-      {/* Hero Data Intake Layout */}
+      {/* Grid Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
         
-        {/* Left Column (58%): File Upload Drag Area & Column Mapper */}
+        {/* Left Column (col-span-7): Upload Node & Mapping Controls */}
         <div className="xl:col-span-7 flex flex-col gap-6">
+          
           {/* Uploader Card */}
-          <div className="fintech-card">
-            <h3 className="text-sm font-extrabold text-[var(--text-primary)] mb-4">Spreadsheet Upload Node</h3>
+          <div className="fintech-card flex flex-col justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-1">Spreadsheet Upload Node</h3>
+              <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider mb-4">
+                Parse local CSV/Excel transactions into memory
+              </p>
+            </div>
             
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-10 text-center transition ${
+              className={`border border-dashed rounded-xl p-8 text-center transition ${
                 isDragOver ? 'border-[var(--accent-color)] bg-[var(--accent-glow)]' : 'border-[var(--border-color)]'
               }`}
             >
-              <UploadCloud className="mx-auto text-[var(--text-secondary)] mb-3" size={36} />
+              <UploadCloud className="mx-auto text-[var(--text-secondary)] mb-3 opacity-60" size={32} />
               <p className="text-xs font-semibold text-[var(--text-primary)] mb-1">
                 Drag & drop your CSV or Excel file here
               </p>
-              <p className="text-[10px] text-[var(--text-secondary)] mb-4 uppercase font-bold tracking-wider">
+              <p className="text-[9px] text-[var(--text-secondary)] mb-4 font-semibold uppercase tracking-wider">
                 Supports CSV, XLSX, XLS
               </p>
               <input
@@ -349,14 +362,14 @@ export default function DataIntakePage() {
               />
               <label
                 htmlFor="file-upload"
-                className="btn-secondary px-5 py-2.5 inline-block text-[11px] font-bold cursor-pointer"
+                className="btn-secondary h-10 px-5 text-xs font-semibold cursor-pointer inline-flex items-center justify-center"
               >
                 Browse Files
               </label>
             </div>
             {file && (
-              <p className="text-[11px] font-bold text-[var(--accent-color)] mt-3 flex items-center gap-1.5 justify-center">
-                <FileText size={12} /> Active Parse Node: {file.name}
+              <p className="text-[11px] font-semibold text-[var(--accent-color)] mt-3 flex items-center gap-1.5 justify-center bg-[var(--accent-glow)] py-1.5 px-3 rounded-lg border border-[var(--accent-color)]/10">
+                <FileText size={12} /> Active Ingestion Socket: {file.name}
               </p>
             )}
           </div>
@@ -364,23 +377,28 @@ export default function DataIntakePage() {
           {/* Validation & Mapping (renders only when file is active) */}
           {file && parsedRows.length > 0 && (
             <div className="fintech-card flex flex-col gap-5">
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)] pb-2 border-b border-[var(--border-color)]">
-                Dynamic Schema Mapper
-              </h3>
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-1">
+                  Dynamic Schema Mapping
+                </h3>
+                <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
+                  Align ingested spreadsheet headers with ledger database attributes
+                </p>
+              </div>
               
               {/* Mapper Fields */}
               <div className="grid grid-cols-2 gap-4">
                 {Object.keys(inferredMapping).map((field) => {
                   const isMandatory = field === 'amount' || field === 'transactionDate';
                   return (
-                    <div key={field} className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wide">
-                        {field.replace(/([A-Z])/g, ' $1')} {isMandatory && <span className="text-red-500">*</span>}
+                    <div key={field} className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
+                        {field.replace(/([A-Z])/g, ' $1')} {isMandatory && <span className="text-rose-500">*</span>}
                       </label>
                       <select
                         value={inferredMapping[field as keyof ColumnMapping] || ''}
                         onChange={(e) => handleMappingChange(field as keyof ColumnMapping, e.target.value)}
-                        className="fintech-select py-1 px-2 text-xs font-semibold"
+                        className="fintech-select h-10 py-0 px-3 text-xs font-medium w-full"
                       >
                         <option value="">-- Do Not Map --</option>
                         {parsedHeaders.map(h => <option key={h} value={h}>{h}</option>)}
@@ -393,38 +411,38 @@ export default function DataIntakePage() {
               {/* Data Quality validation board */}
               {validationReport && (
                 <div className="p-4 rounded-xl bg-[var(--bg-color)] border border-[var(--border-color)]">
-                  <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2.5 flex items-center gap-1">
-                    <CheckCircle size={11} className="text-emerald-500" />
-                    Pre-Import Data Quality Check
+                  <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <CheckCircle size={12} className="text-emerald-500" />
+                    Pre-Import Data Integrity Analysis
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-                    <div className="p-2 rounded bg-[var(--surface-color)] border border-[var(--border-color)]">
-                      <p className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Missing</p>
-                      <p className={`text-sm font-bold ${validationReport.missingValues > 0 ? 'text-amber-500' : 'text-[var(--text-primary)]'}`}>
+                    <div className="p-2.5 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)]">
+                      <p className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">Missing</p>
+                      <p className={`text-sm font-semibold mt-1 ${validationReport.missingValues > 0 ? 'text-amber-500' : 'text-[var(--text-primary)]'}`}>
                         {validationReport.missingValues}
                       </p>
                     </div>
-                    <div className="p-2 rounded bg-[var(--surface-color)] border border-[var(--border-color)]">
-                      <p className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Duplicates</p>
-                      <p className={`text-sm font-bold ${validationReport.duplicateRows > 0 ? 'text-amber-500' : 'text-[var(--text-primary)]'}`}>
+                    <div className="p-2.5 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)]">
+                      <p className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">Duplicates</p>
+                      <p className={`text-sm font-semibold mt-1 ${validationReport.duplicateRows > 0 ? 'text-amber-500' : 'text-[var(--text-primary)]'}`}>
                         {validationReport.duplicateRows}
                       </p>
                     </div>
-                    <div className="p-2 rounded bg-[var(--surface-color)] border border-[var(--border-color)]">
-                      <p className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Bad Dates</p>
-                      <p className={`text-sm font-bold ${validationReport.invalidDates > 0 ? 'text-red-500' : 'text-[var(--text-primary)]'}`}>
+                    <div className="p-2.5 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)]">
+                      <p className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">Bad Dates</p>
+                      <p className={`text-sm font-semibold mt-1 ${validationReport.invalidDates > 0 ? 'text-rose-500' : 'text-[var(--text-primary)]'}`}>
                         {validationReport.invalidDates}
                       </p>
                     </div>
-                    <div className="p-2 rounded bg-[var(--surface-color)] border border-[var(--border-color)]">
-                      <p className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Negatives</p>
-                      <p className={`text-sm font-bold ${validationReport.negativeValues > 0 ? 'text-amber-500' : 'text-[var(--text-primary)]'}`}>
+                    <div className="p-2.5 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)]">
+                      <p className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">Negatives</p>
+                      <p className={`text-sm font-semibold mt-1 ${validationReport.negativeValues > 0 ? 'text-amber-500' : 'text-[var(--text-primary)]'}`}>
                         {validationReport.negativeValues}
                       </p>
                     </div>
-                    <div className="p-2 rounded bg-[var(--surface-color)] border border-[var(--border-color)]">
-                      <p className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Bad Status</p>
-                      <p className={`text-sm font-bold ${validationReport.malformedStatuses > 0 ? 'text-red-500' : 'text-[var(--text-primary)]'}`}>
+                    <div className="p-2.5 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)]">
+                      <p className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">Bad Status</p>
+                      <p className={`text-sm font-semibold mt-1 ${validationReport.malformedStatuses > 0 ? 'text-rose-500' : 'text-[var(--text-primary)]'}`}>
                         {validationReport.malformedStatuses}
                       </p>
                     </div>
@@ -435,11 +453,11 @@ export default function DataIntakePage() {
               <button
                 onClick={handleImport}
                 disabled={loading.importing}
-                className="btn-primary w-full py-2.5 text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                className="btn-primary w-full h-11 text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-md"
               >
                 {loading.importing ? (
                   <>
-                    <RefreshCw className="animate-spin" size={12} /> Importing Data...
+                    <RefreshCw className="animate-spin" size={12} /> Importing Data telemetry...
                   </>
                 ) : (
                   <>
@@ -451,99 +469,172 @@ export default function DataIntakePage() {
           )}
         </div>
 
-        {/* Right Column (42%): Grid preview / Recent Imports logs */}
+        {/* Right Column (col-span-5): Preview grid or Quick Stats Dashboard */}
         <div className="xl:col-span-5 flex flex-col gap-6">
-          {/* Data preview */}
+          
+          {/* Data preview (renders when file is active) */}
           {file && parsedRows.length > 0 ? (
-            <div className="fintech-card flex-1 flex flex-col justify-between">
+            <div className="fintech-card flex flex-col gap-4">
               <div>
-                <h3 className="text-sm font-extrabold text-[var(--text-primary)] mb-3 flex items-center justify-between">
-                  <span>Data Intake preview</span>
-                  <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase bg-[var(--bg-color)] px-2 py-0.5 rounded border border-[var(--border-color)]">
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-1 flex items-center justify-between">
+                  <span>Data Ingestion Telemetry Preview</span>
+                  <span className="text-[9px] font-semibold text-[var(--text-secondary)] uppercase bg-[var(--bg-color)] px-2 py-0.5 rounded border border-[var(--border-color)]">
                     First 6 Rows of {parsedRows.length.toLocaleString()}
                   </span>
                 </h3>
-                <div className="overflow-x-auto border border-[var(--border-color)] rounded-lg custom-scrollbar">
-                  <table className="w-full text-left border-collapse text-[10.5px]">
-                    <thead>
-                      <tr className="bg-[var(--bg-color)] border-b border-[var(--border-color)]">
+                <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
+                  Raw preview vectors before ingestion index
+                </p>
+              </div>
+
+              <div className="overflow-x-auto border border-[var(--border-color)] rounded-lg custom-scrollbar">
+                <table className="w-full text-left border-collapse text-[10px]">
+                  <thead>
+                    <tr className="bg-[var(--bg-color)] border-b border-[var(--border-color)]">
+                      {parsedHeaders.slice(0, 4).map(h => (
+                        <th key={h} className="py-2.5 px-3 font-semibold text-[var(--text-secondary)] uppercase tracking-wider truncate max-w-[90px]">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {parsedRows.slice(0, 6).map((row, idx) => (
+                      <tr key={idx} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-color)] transition">
                         {parsedHeaders.slice(0, 4).map(h => (
-                          <th key={h} className="py-2 px-3 font-extrabold text-[var(--text-secondary)] uppercase tracking-wide truncate max-w-[80px]">
-                            {h}
-                          </th>
+                          <td key={h} className="py-2.5 px-3 text-[var(--text-primary)] truncate max-w-[90px] font-medium">
+                            {String(row[h])}
+                          </td>
                         ))}
                       </tr>
-                    </thead>
-                    <tbody>
-                      {parsedRows.slice(0, 6).map((row, idx) => (
-                        <tr key={idx} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-color)] transition">
-                          {parsedHeaders.slice(0, 4).map(h => (
-                            <td key={h} className="py-2 px-3 text-[var(--text-primary)] truncate max-w-[80px] font-medium">
-                              {String(row[h])}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <p className="text-[10px] text-[var(--text-secondary)] italic mt-4">
+              <p className="text-[9px] text-[var(--text-secondary)] italic">
                 Column mapping must include amount and date fields to activate import node.
               </p>
             </div>
           ) : (
-            <div className="fintech-card flex-1 flex flex-col items-center justify-center text-center p-8">
-              <Database className="text-[var(--text-secondary)] opacity-35 mb-2.5" size={40} />
-              <h4 className="text-xs font-bold text-[var(--text-primary)] mb-1">No Active Preview Session</h4>
-              <p className="text-[10.5px] text-[var(--text-secondary)] max-w-xs leading-relaxed">
-                Spreadsheet preview grid will render here once a valid file is parsed above.
-              </p>
+            /* Premium Database Stats cards & Expected Schema guide (renders when NO file is active) */
+            <div className="flex flex-col gap-6">
+              
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="fintech-card p-4 flex flex-col justify-between h-[100px]">
+                  <span className="metric-label">Active Nodes</span>
+                  <p className="text-xl font-bold mt-1 text-[var(--text-primary)]">{datasets.length}</p>
+                  <p className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">Imported telemetry spreadsheets</p>
+                </div>
+                <div className="fintech-card p-4 flex flex-col justify-between h-[100px]">
+                  <span className="metric-label">Total Logs Indexed</span>
+                  <p className="text-xl font-bold mt-1 text-[var(--accent-color)]">{totalAccumulatedRows.toLocaleString()}</p>
+                  <p className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">Total database ledger rows</p>
+                </div>
+                <div className="fintech-card p-4 flex flex-col justify-between h-[100px]">
+                  <span className="metric-label">Mean Density</span>
+                  <p className="text-xl font-bold mt-1 text-emerald-500">{avgDatasetRows.toLocaleString()}</p>
+                  <p className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">Average rows per index period</p>
+                </div>
+                <div className="fintech-card p-4 flex flex-col justify-between h-[100px]">
+                  <span className="metric-label">Latest Activity</span>
+                  <p className="text-[11px] font-semibold mt-2.5 text-[var(--text-primary)] truncate">
+                    {latestDataset ? latestDataset.name : 'No Active Logs'}
+                  </p>
+                  <p className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">
+                    {latestDataset ? new Date(latestDataset.importedAt).toLocaleDateString() : 'System Idle'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Ingestion Expected Schema Guide */}
+              <div className="fintech-card flex flex-col gap-3">
+                <div>
+                  <h3 className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+                    <Database size={13} className="text-[var(--accent-color)]" />
+                    Ingestion Schema Guidelines
+                  </h3>
+                  <p className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider mt-0.5">
+                    Target schema specifications for custom spreadsheet tables
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 text-[10px] mt-1 font-medium">
+                  <div className="flex justify-between items-center py-1 border-b border-[var(--border-color)]/40">
+                    <span className="text-[var(--text-primary)]">Revenue / Amount <span className="text-rose-500">*</span></span>
+                    <span className="text-[var(--text-secondary)] uppercase text-[9px] font-semibold bg-[var(--bg-color)] px-1.5 py-0.5 rounded">Numeric (float)</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-[var(--border-color)]/40">
+                    <span className="text-[var(--text-primary)]">Transaction Date <span className="text-rose-500">*</span></span>
+                    <span className="text-[var(--text-secondary)] uppercase text-[9px] font-semibold bg-[var(--bg-color)] px-1.5 py-0.5 rounded">Date format</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-[var(--border-color)]/40">
+                    <span className="text-[var(--text-primary)]">Customer Name</span>
+                    <span className="text-[var(--text-secondary)] uppercase text-[9px] font-semibold bg-[var(--bg-color)] px-1.5 py-0.5 rounded">String (text)</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-[var(--border-color)]/40">
+                    <span className="text-[var(--text-primary)]">Product Name</span>
+                    <span className="text-[var(--text-secondary)] uppercase text-[9px] font-semibold bg-[var(--bg-color)] px-1.5 py-0.5 rounded">String (text)</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-[var(--border-color)]/40">
+                    <span className="text-[var(--text-primary)]">Category / Sector</span>
+                    <span className="text-[var(--text-secondary)] uppercase text-[9px] font-semibold bg-[var(--bg-color)] px-1.5 py-0.5 rounded">String (text)</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-[var(--text-primary)]">Status</span>
+                    <span className="text-[var(--text-secondary)] uppercase text-[9px] font-semibold bg-[var(--bg-color)] px-1.5 py-0.5 rounded">completed/pending/cancelled</span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Recent Imports history logs */}
+          {/* Recent Imports Timeline Database */}
           <div className="fintech-card min-h-[220px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)] mb-3 pb-2 border-b border-[var(--border-color)] flex items-center justify-between">
-                <span>Recent Imports Database</span>
-                <span className="text-[9px] font-bold text-[var(--text-secondary)] bg-[var(--bg-color)] px-2 py-0.5 rounded border border-[var(--border-color)] uppercase">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-1 pb-2 border-b border-[var(--border-color)] flex items-center justify-between">
+                <span>Recent Imports Database Log</span>
+                <span className="text-[9px] font-semibold text-[var(--text-secondary)] bg-[var(--bg-color)] px-2 py-0.5 rounded border border-[var(--border-color)] uppercase">
                   {datasets.length} Active Nodes
                 </span>
               </h3>
               
-              <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar">
+              <div className="space-y-2 mt-3 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar">
                 {datasets.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-[var(--text-secondary)] font-medium">
+                  <div className="py-8 text-center text-xs text-[var(--text-secondary)] font-medium">
                     No active datasets. Upload a spreadsheet to trigger intelligence views.
                   </div>
                 ) : (
-                  datasets.map((d) => (
-                    <div 
-                      key={d.id} 
-                      className="flex justify-between items-center text-xs p-2.5 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] hover:border-[var(--accent-color)]/20 transition group"
-                    >
-                      <div className="flex flex-col gap-0.5 truncate mr-3 cursor-pointer" onClick={() => handleDatasetSwitch(d.id)}>
-                        <span className="font-extrabold text-[var(--text-primary)] truncate max-w-[190px]">
-                          {d.name}
-                        </span>
-                        <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)] font-semibold uppercase">
-                          <span>{d.rowCount.toLocaleString()} rows</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-0.5">
-                            <Calendar size={9} /> {new Date(d.importedAt).toLocaleDateString()}
+                  datasets.map((d) => {
+                    return (
+                      <div 
+                        key={d.id} 
+                        className="flex justify-between items-center text-xs p-3 rounded-lg border bg-[var(--bg-color)] border-[var(--border-color)] hover:border-[var(--accent-color)]/20 transition group"
+                      >
+                        <div className="flex flex-col gap-0.5 truncate mr-3 cursor-pointer" onClick={() => handleDatasetSwitch(d.id)}>
+                          <span className="font-semibold text-[var(--text-primary)] truncate max-w-[190px]">
+                            {d.name}
                           </span>
+                          <div className="flex items-center gap-2 text-[9px] text-[var(--text-secondary)] font-semibold uppercase">
+                            <span className="text-[var(--accent-color)]">{d.rowCount.toLocaleString()} rows</span>
+                            <span>•</span>
+                            <span className="flex items-center gap-0.5">
+                              <Calendar size={9} /> {new Date(d.importedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => removeDataset(d.id)}
+                            className="p-1.5 rounded hover:bg-rose-500/10 text-[var(--text-secondary)] hover:text-rose-500 transition opacity-0 group-hover:opacity-100 cursor-pointer"
+                            title="Delete dataset"
+                          >
+                            <Trash2 size={13} />
+                          </button>
                         </div>
                       </div>
-                      <button
-                        onClick={() => removeDataset(d.id)}
-                        className="p-1.5 rounded hover:bg-red-500/10 text-[var(--text-secondary)] hover:text-red-500 transition opacity-0 group-hover:opacity-100 cursor-pointer"
-                        title="Delete dataset"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

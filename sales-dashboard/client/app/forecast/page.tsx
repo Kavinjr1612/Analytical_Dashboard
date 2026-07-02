@@ -152,7 +152,7 @@ export default function ForecastPage() {
         {trendData.length < 3 ? (
           <div className="fintech-card p-10 text-center">
             <Layers className="mx-auto text-[var(--text-secondary)] opacity-40 mb-3" size={32} />
-            <h3 className="text-sm font-extrabold text-[var(--text-primary)] mb-1">Insufficient data history</h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-1">Insufficient data history</h3>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed max-w-sm mx-auto">
               Linear regression projections and rolling moving averages require at least 3 distinct date periods in your dataset.
             </p>
@@ -164,7 +164,7 @@ export default function ForecastPage() {
               <div className="fintech-card h-[380px] flex flex-col justify-between">
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+                    <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1">
                       <span>Predictive Growth Cone</span>
                       <span title="Projects sales trends with standard error boundaries representing statistical variance."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
                     </h3>
@@ -173,15 +173,15 @@ export default function ForecastPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3.5 text-[10px] font-bold text-[var(--text-secondary)] uppercase">
-                    <span className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded bg-[#3b82f6]" /> Historical
+                  <div className="flex items-center gap-4 text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded bg-[#6366F1]" /> Historical
                     </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded bg-[#00F2FE]" /> Projected
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded bg-[#22D3EE]" /> Projected
                     </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded border border-dashed border-[#ff0055]" /> Uncertainty Bounds
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded border border-dashed border-[#F43F5E]" /> Uncertainty Bounds
                     </span>
                   </div>
                 </div>
@@ -192,9 +192,17 @@ export default function ForecastPage() {
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={forecastAnalytics.chartPoints}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.08} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.05} />
                         <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} />
-                        <YAxis stroke="var(--text-secondary)" fontSize={9} tickFormatter={(v) => `$${v.toLocaleString()}`} />
+                        <YAxis 
+                          stroke="var(--text-secondary)" 
+                          fontSize={9} 
+                          tickFormatter={(v) => `$${v.toLocaleString()}`}
+                          domain={[
+                            (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
+                            (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
+                          ]}
+                        />
                         <Tooltip 
                           contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                           formatter={(value: any, name: any) => {
@@ -203,12 +211,12 @@ export default function ForecastPage() {
                           }}
                         />
                         {/* Shaded Uncertainty bounds */}
-                        <Area type="monotone" dataKey="upperBound" stroke="none" fill="#ff0055" fillOpacity={0.05} name="Upper Boundary" />
-                        <Area type="monotone" dataKey="lowerBound" stroke="none" fill="#ff0055" fillOpacity={0.05} name="Lower Boundary" />
+                        <Area type="monotone" dataKey="upperBound" stroke="none" fill="#F43F5E" fillOpacity={0.03} name="Upper Boundary" />
+                        <Area type="monotone" dataKey="lowerBound" stroke="none" fill="#F43F5E" fillOpacity={0.03} name="Lower Boundary" />
                         
                         {/* Main Lines */}
-                        <Area type="monotone" dataKey="historical" stroke="#3b82f6" strokeWidth={2.5} fill="none" name="Historical Sales" />
-                        <Area type="monotone" dataKey="forecast" stroke="#00F2FE" strokeWidth={2.5} fill="none" name="Statistical Forecast" />
+                        <Area type="monotone" dataKey="historical" stroke="#6366F1" strokeWidth={1.5} fill="none" name="Historical Sales" />
+                        <Area type="monotone" dataKey="forecast" stroke="#22D3EE" strokeWidth={1.5} fill="none" name="Statistical Forecast" />
                       </AreaChart>
                     </ResponsiveContainer>
                   )}
@@ -224,7 +232,7 @@ export default function ForecastPage() {
                   <p className="metric-value mt-2 text-[var(--accent-color)]">
                     {formatCurrency(forecastAnalytics.rollingAvg)}
                   </p>
-                  <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold">
+                  <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
                     Synthesized rolling 3-period average index
                   </p>
                 </div>
@@ -235,7 +243,7 @@ export default function ForecastPage() {
                   <p className="metric-value mt-2 text-[var(--text-primary)]">
                     {formatCurrency(forecastAnalytics.predictedNext || 0)}
                   </p>
-                  <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold">
+                  <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
                     Expected spread: {formatCurrency(forecastAnalytics.predictedNextLower || 0)} to {formatCurrency(forecastAnalytics.predictedNextUpper || 0)}
                   </p>
                 </div>
@@ -246,11 +254,10 @@ export default function ForecastPage() {
                   <p className="metric-value mt-2 text-emerald-500">
                     {forecastAnalytics.confidenceScore}%
                   </p>
-                  <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold">
+                  <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
                     Confidence index based on R-Squared correlation strength
                   </p>
                 </div>
-
               </div>
             </>
           )

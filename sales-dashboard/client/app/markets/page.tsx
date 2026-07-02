@@ -50,7 +50,7 @@ export default function MarketsPage() {
   }, [categoryData]);
 
   // Colors list
-  const colorsList = ['#3b82f6', '#06b6d4', '#00F2FE', '#10b981', '#f59e0b', '#6366f1'];
+  const colorsList = ['#22D3EE', '#6366F1', '#10B981', '#F59E0B', '#F43F5E'];
 
   return (
     <EmptyStateWrapper>
@@ -62,7 +62,7 @@ export default function MarketsPage() {
           {/* Dominance Heatmap (Treemap) (col-span-8) */}
           <div className="xl:col-span-8 fintech-card h-[380px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Market Share Treemap</h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">Market Share Treemap</h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Heatmap density representing sales sizes by sector
               </p>
@@ -93,7 +93,7 @@ export default function MarketsPage() {
           {/* Category distribution grid (col-span-4) */}
           <div className="xl:col-span-4 fintech-card h-[380px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Sector Breakdown</h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">Sector Breakdown</h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Market share percentage calculations
               </p>
@@ -112,11 +112,11 @@ export default function MarketsPage() {
                       onClick={() => setCategoryFilter(c.category)}
                     >
                       <div className="flex justify-between items-center text-xs mb-1.5">
-                        <span className="font-extrabold text-[var(--text-primary)] flex items-center gap-1">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colorsList[index % colorsList.length] }} />
+                        <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colorsList[index % colorsList.length] }} />
                           {c.category}
                         </span>
-                        <span className="font-extrabold text-[var(--accent-color)]">
+                        <span className="font-semibold text-[var(--accent-color)]">
                           {pct.toFixed(1)}%
                         </span>
                       </div>
@@ -138,7 +138,7 @@ export default function MarketsPage() {
           {/* Top Products clusters list (col-span-7) */}
           <div className="lg:col-span-7 fintech-card min-h-[300px] flex flex-col justify-between">
             <div>
-              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
+              <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
                 Top Performing Product Nodes
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Calculated correlation aggregates</p>
@@ -151,12 +151,12 @@ export default function MarketsPage() {
                 topProducts.map((p, idx) => (
                   <div key={idx} className="flex justify-between items-center text-xs p-2.5 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)]">
                     <div className="flex flex-col gap-0.5 truncate mr-3">
-                      <span className="font-extrabold text-[var(--text-primary)] truncate max-w-[280px]">{p.name}</span>
+                      <span className="font-semibold text-[var(--text-primary)] truncate max-w-[280px]">{p.name}</span>
                       <span className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">{p.category}</span>
                     </div>
                     <div className="flex items-center gap-4 text-[10.5px]">
                       <span className="text-[var(--text-secondary)]">{p.count} units</span>
-                      <span className="text-[var(--accent-color)] font-extrabold">{formatCurrency(p.sales)}</span>
+                      <span className="text-[var(--accent-color)] font-semibold">{formatCurrency(p.sales)}</span>
                     </div>
                   </div>
                 ))
@@ -167,7 +167,7 @@ export default function MarketsPage() {
           {/* Category volume variance (col-span-5) */}
           <div className="lg:col-span-5 fintech-card min-h-[300px] flex flex-col justify-between">
             <div>
-              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
+              <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
                 Volume Rank Distribution
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Category performance ranking bar vectors</p>
@@ -177,7 +177,15 @@ export default function MarketsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryData}>
                   <XAxis dataKey="category" stroke="var(--text-secondary)" fontSize={9} />
-                  <YAxis stroke="var(--text-secondary)" fontSize={9} tickFormatter={(v) => `$${v.toLocaleString()}`} />
+                  <YAxis 
+                    stroke="var(--text-secondary)" 
+                    fontSize={9} 
+                    tickFormatter={(v) => `$${v.toLocaleString()}`}
+                    domain={[
+                      (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
+                      (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
+                    ]}
+                  />
                   <Tooltip 
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                     formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}

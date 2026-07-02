@@ -82,7 +82,7 @@ export default function RevenuePage() {
       .sort((a,b) => a.date.localeCompare(b.date));
   }, [currentTransactions]);
 
-  const primaryAccent = '#00F2FE';
+  const primaryAccent = '#22D3EE'; // Cyan
 
   return (
     <EmptyStateWrapper>
@@ -92,9 +92,9 @@ export default function RevenuePage() {
         <div className="p-4 rounded-xl bg-[var(--accent-glow)] border border-[var(--accent-color)]/20 flex items-start gap-3">
           <Activity size={16} className="text-[var(--accent-color)] mt-0.5 flex-shrink-0" />
           <div>
-            <h4 className="text-xs font-extrabold text-[var(--text-primary)]">Financial Intelligence Takeaways</h4>
+            <h4 className="text-xs font-semibold text-[var(--text-primary)]">Financial Intelligence Takeaways</h4>
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
-              This screen visualizes historical gross sales revenue alongside a statistical **Linear Regression Trend Line** (represented by the dashed red index). Linear regression helps you spot the overall trajectory of business growth while filtering out temporary seasonal spikes. If you notice standard deviation anomalies in the feed below, these represent historical dates with abnormal sales activity.
+              This screen visualizes historical gross sales revenue alongside a statistical **Linear Regression Trend Line** (represented by the dashed Rose index). Linear regression helps you spot the overall trajectory of business growth while filtering out temporary seasonal spikes. If you notice standard deviation anomalies in the feed below, these represent historical dates with abnormal sales activity.
             </p>
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function RevenuePage() {
         <div className="fintech-card h-[380px] flex flex-col justify-between">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1">
                 <span>Revenue War Room</span>
                 <span title="Visualizes gross sales over time with linear trend line projection overlay."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
@@ -111,9 +111,9 @@ export default function RevenuePage() {
                 Financial trend analytics with linear regression projection
               </p>
             </div>
-            <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--text-secondary)] uppercase">
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-[#00F2FE]" /> Ingested Revenue</span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded border border-dashed border-[#ff0055]" /> Trend Line</span>
+            <div className="flex items-center gap-4 text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-[#22D3EE]" /> Ingested Revenue</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-dashed border-[#F43F5E]" /> Trend Line</span>
             </div>
           </div>
 
@@ -125,19 +125,27 @@ export default function RevenuePage() {
                 <AreaChart data={regressionData}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={primaryAccent} stopOpacity={0.25}/>
+                      <stop offset="5%" stopColor={primaryAccent} stopOpacity={0.08}/>
                       <stop offset="95%" stopColor={primaryAccent} stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.1} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.05} />
                   <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} />
-                  <YAxis stroke="var(--text-secondary)" fontSize={9} tickFormatter={(v) => `$${v.toLocaleString()}`} />
+                  <YAxis 
+                    stroke="var(--text-secondary)" 
+                    fontSize={9} 
+                    tickFormatter={(v) => `$${v.toLocaleString()}`}
+                    domain={[
+                      (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
+                      (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
+                    ]}
+                  />
                   <Tooltip 
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                     formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke={primaryAccent} strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" name="Ingested Revenue" />
-                  <Line type="monotone" dataKey="trend" stroke="#ff0055" strokeWidth={1.5} strokeDasharray="5 5" dot={false} name="Regression Trend" />
+                  <Area type="monotone" dataKey="revenue" stroke={primaryAccent} strokeWidth={1.5} fillOpacity={1} fill="url(#colorRevenue)" name="Ingested Revenue" />
+                  <Line type="monotone" dataKey="trend" stroke="#F43F5E" strokeWidth={1.5} strokeDasharray="5 5" dot={false} name="Regression Trend" />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -150,7 +158,7 @@ export default function RevenuePage() {
           {/* AOV Trend Chart (col-span-5) */}
           <div className="xl:col-span-5 fintech-card h-[310px] flex flex-col justify-between">
             <div>
-              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1 flex items-center gap-1">
                 <span>Average Ticket (AOV) Trend</span>
                 <span title="Measures the average spend per order (Total Revenue / Total Orders)."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </h4>
@@ -163,12 +171,20 @@ export default function RevenuePage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyAOV}>
                     <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} />
-                    <YAxis stroke="var(--text-secondary)" fontSize={9} tickFormatter={(v) => `$${v}`} />
+                    <YAxis 
+                      stroke="var(--text-secondary)" 
+                      fontSize={9} 
+                      tickFormatter={(v) => `$${v}`}
+                      domain={[
+                        (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
+                        (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
+                      ]}
+                    />
                     <Tooltip 
                       contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                       formatter={(value: any) => [`$${value}`, 'AOV']}
                     />
-                    <Bar dataKey="aov" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="aov" fill="#6366F1" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

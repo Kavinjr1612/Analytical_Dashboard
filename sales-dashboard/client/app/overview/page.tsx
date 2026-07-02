@@ -46,8 +46,8 @@ export default function OverviewPage() {
   };
 
   // Recharts color palettes mapped to dark/light variables
-  const primaryAccent = '#00F2FE';
-  const colorsList = ['#3b82f6', '#06b6d4', '#00F2FE', '#10b981', '#f59e0b', '#6366f1'];
+  const primaryAccent = '#22D3EE'; // Cyan
+  const colorsList = ['#22D3EE', '#6366F1', '#10B981', '#F59E0B', '#F43F5E'];
 
   return (
     <EmptyStateWrapper>
@@ -67,7 +67,7 @@ export default function OverviewPage() {
             <div className="metric-value">
               {loading.summary ? '...' : formatCurrency(summary?.totalRevenue || 0)}
             </div>
-            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
               Consolidated revenue stream
             </p>
           </div>
@@ -83,7 +83,7 @@ export default function OverviewPage() {
             <div className="metric-value">
               {loading.summary ? '...' : formatNumber(summary?.totalOrders || 0)}
             </div>
-            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
               Total transaction counts
             </p>
           </div>
@@ -99,7 +99,7 @@ export default function OverviewPage() {
             <div className="metric-value">
               {loading.summary ? '...' : formatNumber(summary?.totalCustomers || 0)}
             </div>
-            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
               Unique customer accounts
             </p>
           </div>
@@ -112,10 +112,10 @@ export default function OverviewPage() {
                 <TrendingUp size={14} />
               </div>
             </div>
-            <div className="metric-value text-emerald-500 font-extrabold flex items-center gap-1">
+            <div className="metric-value text-emerald-500 font-bold flex items-center gap-1">
               +12.4%
             </div>
-            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
               Projected expansion index
             </p>
           </div>
@@ -127,7 +127,7 @@ export default function OverviewPage() {
             <div>
               <div className="flex items-center gap-2 pb-2 border-b border-[var(--border-color)] mb-3">
                 <Award size={14} className="text-[var(--accent-color)]" />
-                <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   Executive Business Intelligence Summary
                 </span>
               </div>
@@ -136,9 +136,9 @@ export default function OverviewPage() {
               </p>
             </div>
             
-            <div className="flex items-center gap-4 text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mt-4">
+            <div className="flex items-center gap-4 text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider mt-4">
               <span>Security Node: Verified</span>
-              <span className="flex items-center gap-0.5 text-emerald-500">
+              <span className="flex items-center gap-0.5 text-emerald-500 font-semibold">
                 <ShieldCheck size={11} /> System Online
               </span>
             </div>
@@ -146,11 +146,11 @@ export default function OverviewPage() {
 
           {/* Confidence Score Gauge */}
           <div className="lg:w-[220px] p-4 rounded-xl bg-[var(--bg-color)] border border-[var(--border-color)] flex flex-col justify-between items-center text-center">
-            <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+            <span className="text-[9px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
               Telemetry Confidence
             </span>
             <div className="my-2.5 relative flex items-center justify-center">
-              <span className="text-2xl font-extrabold text-[var(--text-primary)]">
+              <span className="text-2xl font-bold text-[var(--text-primary)]">
                 {loading.summary ? '--' : `${confidence}%`}
               </span>
             </div>
@@ -165,7 +165,7 @@ export default function OverviewPage() {
           
           {/* Left: Revenue Trend Chart (50% width - col-span-6) */}
           <div className="xl:col-span-6 fintech-card h-[340px] flex flex-col">
-            <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
+            <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
               <span>Ingestion Revenue trend</span>
               <span title="Shows monthly or daily aggregate revenue patterns from active spreadsheets."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
             </h4>
@@ -174,17 +174,25 @@ export default function OverviewPage() {
                 <AreaChart data={charts?.revenueTrend || []}>
                   <defs>
                     <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={primaryAccent} stopOpacity={0.2}/>
+                      <stop offset="5%" stopColor={primaryAccent} stopOpacity={0.08}/>
                       <stop offset="95%" stopColor={primaryAccent} stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} />
-                  <YAxis stroke="var(--text-secondary)" fontSize={9} tickFormatter={(v) => `$${v.toLocaleString()}`} />
+                  <YAxis 
+                    stroke="var(--text-secondary)" 
+                    fontSize={9} 
+                    tickFormatter={(v) => `$${v.toLocaleString()}`}
+                    domain={[
+                      (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
+                      (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
+                    ]}
+                  />
                   <Tooltip 
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                     formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke={primaryAccent} strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
+                  <Area type="monotone" dataKey="revenue" stroke={primaryAccent} strokeWidth={1.5} fillOpacity={1} fill="url(#colorRev)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -192,7 +200,7 @@ export default function OverviewPage() {
 
           {/* Center: Regional Comparison (25% width - col-span-3) */}
           <div className="xl:col-span-3 fintech-card h-[340px] flex flex-col">
-            <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
+            <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
               <span>Regional Revenue Rank</span>
               <span title="Compares total gross sales revenue segmented by operating territories."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
             </h4>
@@ -217,7 +225,7 @@ export default function OverviewPage() {
 
           {/* Right: Category Breakdown (25% width - col-span-3) */}
           <div className="xl:col-span-3 fintech-card h-[340px] flex flex-col">
-            <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
+            <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
               <span>Category volume share</span>
               <span title="Pie breakdown visualizing product categories sorted by share size."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
             </h4>

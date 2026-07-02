@@ -138,7 +138,7 @@ export default function CustomersPage() {
         <div className="p-4 rounded-xl bg-[var(--accent-glow)] border border-[var(--accent-color)]/20 flex items-start gap-3">
           <Users size={16} className="text-[var(--accent-color)] mt-0.5 flex-shrink-0" />
           <div>
-            <h4 className="text-xs font-extrabold text-[var(--text-primary)]">Client Behavior Takeaways</h4>
+            <h4 className="text-xs font-semibold text-[var(--text-primary)]">Client Behavior Takeaways</h4>
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
               This panel tracks cohort loyalty and transaction repeat behaviors. The **MoM Client Retention Curve** details what percentage of buyers from Month 1 continue purchasing in Month 2, 3, etc., illustrating cohort decay. The **Loyalty Ratio Index** compares the total number of unique repeat buyers against single-time buyers to calculate overall brand stickiness.
             </p>
@@ -151,7 +151,7 @@ export default function CustomersPage() {
           {/* Client Retention Curve (col-span-7) */}
           <div className="xl:col-span-7 fintech-card h-[340px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1">
                 <span>MoM Client Retention Curve</span>
                 <span title="Tracks the lifetime decay of customer purchase frequency over monthly offsets."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
@@ -163,14 +163,22 @@ export default function CustomersPage() {
             <div className="flex-1 w-full min-h-0 mt-4 text-xs">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={retentionCurve}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.1} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.05} />
                   <XAxis dataKey="month" stroke="var(--text-secondary)" fontSize={9} />
-                  <YAxis stroke="var(--text-secondary)" fontSize={9} unit="%" />
+                  <YAxis 
+                    stroke="var(--text-secondary)" 
+                    fontSize={9} 
+                    unit="%" 
+                    domain={[
+                      (dataMin) => Math.max(0, Math.floor(dataMin - 5)),
+                      100
+                    ]}
+                  />
                   <Tooltip 
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                     formatter={(value: any) => [`${value}%`, 'Retention Rate']}
                   />
-                  <Line type="monotone" dataKey="retention" stroke="var(--accent-color)" strokeWidth={2.5} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="retention" stroke="var(--accent-color)" strokeWidth={1.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -179,7 +187,7 @@ export default function CustomersPage() {
           {/* Repeat purchase ratio card (col-span-5) */}
           <div className="xl:col-span-5 fintech-card h-[340px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1">
                 <span>Loyalty Ratio Index</span>
                 <span title="Measures the fraction of buyers with >1 transactions against total unique customer count."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
@@ -191,7 +199,7 @@ export default function CustomersPage() {
             <div className="flex-1 flex flex-col justify-center items-center gap-5">
               <div className="text-center">
                 <span className="metric-label">Repeat Purchase Ratio</span>
-                <p className="text-3xl font-extrabold text-emerald-500 mt-1">
+                <p className="text-3xl font-bold text-emerald-500 mt-1">
                   {repeatBehavior.ratio.toFixed(1)}%
                 </p>
               </div>
@@ -216,7 +224,7 @@ export default function CustomersPage() {
           {/* Top high value client list (col-span-7) */}
           <div className="xl:col-span-7 fintech-card min-h-[340px] flex flex-col justify-between">
             <div>
-              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
+              <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
                 Highest Grossing Clients
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Customer records ranked by total purchases</p>
@@ -229,14 +237,14 @@ export default function CustomersPage() {
                 topCustomersList.map((c, idx) => (
                   <div key={idx} className="flex justify-between items-center text-xs p-3 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)]">
                     <div className="flex flex-col gap-0.5 truncate mr-3">
-                      <span className="font-extrabold text-[var(--text-primary)] truncate max-w-[200px]">{c.name}</span>
+                      <span className="font-semibold text-[var(--text-primary)] truncate max-w-[200px]">{c.name}</span>
                       <span className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                         Categories: {c.categories}
                       </span>
                     </div>
                     <div className="flex items-center gap-6 text-[10.5px]">
                       <span className="text-[var(--text-secondary)] font-semibold">{c.orderCount} txns</span>
-                      <span className="text-[var(--accent-color)] font-extrabold">{formatCurrency(c.totalSpend)}</span>
+                      <span className="text-[var(--accent-color)] font-semibold">{formatCurrency(c.totalSpend)}</span>
                     </div>
                   </div>
                 ))
@@ -247,7 +255,7 @@ export default function CustomersPage() {
           {/* Spend frequency distribution (col-span-5) */}
           <div className="xl:col-span-5 fintech-card min-h-[340px] flex flex-col justify-between">
             <div>
-              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
+              <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
                 Transaction Frequency Distribution
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Frequency counts by orders size categories</p>
@@ -264,7 +272,7 @@ export default function CustomersPage() {
                     <Tooltip 
                       contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                     />
-                    <Bar dataKey="users" fill="#6366f1" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="users" fill="var(--accent-color)" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

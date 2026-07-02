@@ -76,7 +76,7 @@ export default function RegionsPage() {
       });
   }, [regionalVelocity, totalRegionalSales, regionData.length]);
 
-  const colorsList = ['#3b82f6', '#06b6d4', '#00F2FE', '#10b981', '#f59e0b', '#6366f1'];
+  const colorsList = ['#22D3EE', '#6366F1', '#10B981', '#F59E0B', '#F43F5E'];
 
   return (
     <EmptyStateWrapper>
@@ -86,7 +86,7 @@ export default function RegionsPage() {
         <div className="p-4 rounded-xl bg-[var(--accent-glow)] border border-[var(--accent-color)]/20 flex items-start gap-3">
           <MapPin size={16} className="text-[var(--accent-color)] mt-0.5 flex-shrink-0" />
           <div>
-            <h4 className="text-xs font-extrabold text-[var(--text-primary)]">Geographical Intelligence Takeaways</h4>
+            <h4 className="text-xs font-semibold text-[var(--text-primary)]">Geographical Intelligence Takeaways</h4>
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
               This screen tracks sales metrics sorted by region. **Growth Velocity** index measures sales momentum by comparing the second half of dates to the first half. A positive percentage represents sales acceleration, while a negative percentage flags market cooling. The **Risk Weakness Feed** alerts you to operating zones that have decelerating growth or whose revenue sits at least 30% below target averages.
             </p>
@@ -99,7 +99,7 @@ export default function RegionsPage() {
           {/* Left: Bar comparison (col-span-7) */}
           <div className="xl:col-span-7 fintech-card h-[360px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1">
                 <span>Regional Revenue Volume</span>
                 <span title="Bar rankings showing total gross revenue generated in each active region."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
@@ -115,7 +115,15 @@ export default function RegionsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={regionData}>
                     <XAxis dataKey="region" stroke="var(--text-secondary)" fontSize={9} />
-                    <YAxis stroke="var(--text-secondary)" fontSize={9} tickFormatter={(v) => `$${v.toLocaleString()}`} />
+                    <YAxis 
+                      stroke="var(--text-secondary)" 
+                      fontSize={9} 
+                      tickFormatter={(v) => `$${v.toLocaleString()}`}
+                      domain={[
+                        (dataMin) => Math.max(0, Math.floor(dataMin - (dataMin * 0.05))),
+                        (dataMax) => Math.ceil(dataMax + (dataMax * 0.05))
+                      ]}
+                    />
                     <Tooltip 
                       contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                       formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
@@ -134,7 +142,7 @@ export default function RegionsPage() {
           {/* Right: Radar representation for variance (col-span-5) */}
           <div className="xl:col-span-5 fintech-card h-[360px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-1">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1">
                 <span>Geographical Distribution</span>
                 <span title="Radar spreads showing variance and concentrations of territory revenue."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
@@ -149,10 +157,10 @@ export default function RegionsPage() {
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="70%" data={regionData}>
-                    <PolarGrid stroke="var(--border-color)" opacity={0.15} />
+                    <PolarGrid stroke="var(--border-color)" opacity={0.1} />
                     <PolarAngleAxis dataKey="region" stroke="var(--text-secondary)" fontSize={9} />
                     <PolarRadiusAxis stroke="var(--text-secondary)" fontSize={8} />
-                    <Radar name="Revenue" dataKey="value" stroke="var(--accent-color)" fill="var(--accent-color)" fillOpacity={0.15} />
+                    <Radar name="Revenue" dataKey="value" stroke="var(--accent-color)" fill="var(--accent-color)" fillOpacity={0.08} />
                   </RadarChart>
                 </ResponsiveContainer>
               )}

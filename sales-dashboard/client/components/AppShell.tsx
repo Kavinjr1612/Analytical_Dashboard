@@ -52,18 +52,18 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
     : datasets.find(d => d.id === filters.datasetId)?.name || 'Combined Dataset';
 
   return (
-    <div className="sticky top-0 z-40 bg-[var(--surface-color)] border-b border-[var(--border-color)] h-[72px] flex items-center transition-colors">
-      <div className="w-full shell-container flex flex-wrap items-center justify-between gap-4">
+    <div className="sticky top-0 z-40 bg-[var(--surface-color)] border-b border-[var(--border-color)] h-[88px] flex items-center transition-colors">
+      <div className="w-full shell-container max-w-[1700px] mx-auto flex items-center justify-between gap-6">
         {/* Route Title & Dataset Label */}
         <div className="flex items-center gap-3">
           <div>
-            <h2 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
+            <h2 className="text-base font-semibold text-[var(--text-primary)] tracking-tight">
               {getPageTitle()}
             </h2>
             {!isHome && (
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1.5 mt-1">
                 <Database size={10} className="text-[var(--accent-color)]" />
-                <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   Dataset: {activeDatasetName}
                 </span>
               </div>
@@ -72,15 +72,15 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
         </div>
 
         {/* Global Controls */}
-        <div className="flex flex-wrap items-center gap-3.5">
+        <div className="flex items-center gap-6">
           {!isHome && (
             <>
               {/* Dataset Switcher */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center">
                 <select
                   value={filters.datasetId || 'all'}
                   onChange={(e) => setDatasetFilter(e.target.value)}
-                  className="fintech-select py-1.5 px-2.5 text-xs font-semibold"
+                  className="fintech-select h-11 px-4 text-xs font-medium"
                 >
                   <option value="all">Combine All Datasets</option>
                   {datasets.map(d => (
@@ -92,51 +92,55 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
               </div>
 
               {/* Date Picker Range */}
-              <div className="flex items-center gap-1">
-                <Calendar size={12} className="text-[var(--text-secondary)]" />
-                <input
-                  type="date"
-                  value={filters.startDate || ''}
-                  onChange={(e) => setDateRangeFilter(e.target.value, filters.endDate || '')}
-                  className="fintech-input py-1 px-1.5 text-[11px] font-semibold w-[105px]"
-                />
-                <span className="text-[var(--text-secondary)] text-[10px]">→</span>
-                <input
-                  type="date"
-                  value={filters.endDate || ''}
-                  onChange={(e) => setDateRangeFilter(filters.startDate || '', e.target.value)}
-                  className="fintech-input py-1 px-1.5 text-[11px] font-semibold w-[105px]"
-                />
+              <div className="flex items-center gap-3">
+                <Calendar size={13} className="text-[var(--text-secondary)] flex-shrink-0" />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={filters.startDate || ''}
+                    onChange={(e) => setDateRangeFilter(e.target.value, filters.endDate || '')}
+                    className="fintech-input h-11 px-4 w-[145px] text-xs font-medium"
+                    placeholder="dd-mm-yyyy"
+                  />
+                  <span className="text-[var(--text-secondary)] text-[10px] font-semibold">→</span>
+                  <input
+                    type="date"
+                    value={filters.endDate || ''}
+                    onChange={(e) => setDateRangeFilter(filters.startDate || '', e.target.value)}
+                    className="fintech-input h-11 px-4 w-[145px] text-xs font-medium"
+                    placeholder="dd-mm-yyyy"
+                  />
+                </div>
               </div>
 
               {/* Search box */}
               <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 text-[var(--text-secondary)]" size={13} />
+                <Search className="absolute left-3.5 top-[15px] text-[var(--text-secondary)]" size={13} />
                 <input
                   type="text"
-                  placeholder="Search data..."
+                  placeholder="Search transactions..."
                   value={searchVal}
                   onChange={(e) => setSearchVal(e.target.value)}
-                  className="fintech-input pl-8 py-1.5 w-[140px] text-xs font-semibold"
+                  className="fintech-input pl-10 pr-4 w-[230px] h-11 text-xs font-medium bg-[var(--bg-color)]/30 border-[var(--border-color)] hover:border-[var(--accent-color)]/35 focus:bg-[var(--surface-color)]"
                 />
               </div>
 
               {/* Data Dictionary Toggler */}
               <button
                 onClick={onOpenGlossary}
-                className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-color)] hover:bg-[rgba(148,163,184,0.05)] rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs transition cursor-pointer"
+                className="h-11 inline-flex items-center justify-center gap-2 px-4 rounded-lg border border-[var(--border-color)] hover:bg-[rgba(148,163,184,0.04)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-semibold text-xs transition cursor-pointer"
                 title="Open Data Glossary"
               >
-                <BookOpen size={12} />
+                <BookOpen size={13} />
                 Dictionary
               </button>
 
               {/* Export Button */}
               <button
                 onClick={handleExport}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-[var(--accent-color)] rounded-lg shadow-sm hover:opacity-90 transition active:scale-95 cursor-pointer"
+                className="h-11 inline-flex items-center justify-center gap-2 px-5 text-xs font-semibold text-white bg-[var(--accent-color)] rounded-lg shadow-sm hover:opacity-95 transition active:scale-[0.98] cursor-pointer"
               >
-                <Download size={12} />
+                <Download size={13} />
                 Export
               </button>
             </>
@@ -145,7 +149,7 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
           {/* Theme Toggler (Always at absolute right) */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg border border-[var(--border-color)] hover:bg-[rgba(148,163,184,0.05)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+            className="h-11 w-11 inline-flex items-center justify-center rounded-lg border border-[var(--border-color)] hover:bg-[rgba(148,163,184,0.04)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}

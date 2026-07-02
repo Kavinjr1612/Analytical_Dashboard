@@ -41,7 +41,7 @@ export default function RiskPage() {
     let riskColor = 'text-emerald-500';
     if (finalRisk > 30) {
       riskLevel = 'HIGH PRESSURE';
-      riskColor = 'text-red-500';
+      riskColor = 'text-rose-500';
     } else if (finalRisk > 12) {
       riskLevel = 'MODERATE';
       riskColor = 'text-amber-500';
@@ -74,7 +74,7 @@ export default function RiskPage() {
     return [
       { name: 'Completed', value: completedCount, color: '#10b981' },
       { name: 'Pending', value: pendingCount, color: '#f59e0b' },
-      { name: 'Cancelled', value: cancelledCount, color: '#ef4444' }
+      { name: 'Cancelled', value: cancelledCount, color: '#F43F5E' } // Rose
     ].filter(item => item.value > 0);
   }, [completedCount, pendingCount, cancelledCount]);
 
@@ -83,10 +83,10 @@ export default function RiskPage() {
       <div className="shell-container tab-transition max-w-[1700px] mx-auto flex flex-col gap-6">
         
         {/* Context Takeaways Callout Card */}
-        <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex items-start gap-3">
-          <ShieldAlert size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+        <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 flex items-start gap-3">
+          <ShieldAlert size={16} className="text-rose-500 mt-0.5 flex-shrink-0" />
           <div>
-            <h4 className="text-xs font-extrabold text-[var(--text-primary)]">Operations Risk Takeaways</h4>
+            <h4 className="text-xs font-semibold text-[var(--text-primary)]">Operations Risk Takeaways</h4>
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
               This panel aggregates data quality and transaction status risks. **Revenue Leakage** tracks the exact amount of potential revenue lost due to cancelled sales logs. **Operational Backlog** shows transactions marked as Pending which require shipping or invoice clearance. The **System Risk Index** synthesizes this into an overall risk percentage: scores above 30% indicate high operational friction.
             </p>
@@ -96,38 +96,38 @@ export default function RiskPage() {
         {/* Row 1: Warning visual headers / risk scores */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Risk Level gauge */}
-          <div className="fintech-card flex flex-col justify-between border-red-500/10">
+          <div className="fintech-card flex flex-col justify-between border-rose-500/10">
             <div className="flex justify-between items-center mb-3">
               <span className="metric-label flex items-center gap-1">
                 <span>System Risk Index</span>
                 <span title="Calculates operational load: (Cancelled*1.5 + Pending*0.8) / Total * 100."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </span>
-              <ShieldAlert className="text-red-500" size={16} />
+              <ShieldAlert className="text-rose-500" size={16} />
             </div>
             <div className="flex items-baseline gap-2">
               <span className="metric-value">{calculations.finalRisk}%</span>
-              <span className={`text-[10px] font-extrabold uppercase ${calculations.riskColor}`}>
+              <span className={`text-[10px] font-semibold uppercase ${calculations.riskColor}`}>
                 {calculations.riskLevel}
               </span>
             </div>
-            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
               Consolidated transaction risk index
             </p>
           </div>
 
           {/* Revenue leakage */}
-          <div className="fintech-card flex flex-col justify-between border-red-500/10">
+          <div className="fintech-card flex flex-col justify-between border-rose-500/10">
             <div className="flex justify-between items-center mb-3">
               <span className="metric-label flex items-center gap-1">
                 <span>Revenue Leakage</span>
                 <span title="Sum of transaction amounts for items whose status is Cancelled."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </span>
-              <XCircle className="text-red-500" size={16} />
+              <XCircle className="text-rose-500" size={16} />
             </div>
-            <div className="metric-value text-red-500">
+            <div className="metric-value text-rose-500">
               {formatCurrency(calculations.leakage)}
             </div>
-            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
               Lost value from cancelled orders
             </p>
           </div>
@@ -141,7 +141,7 @@ export default function RiskPage() {
             <div className="metric-value text-amber-500">
               {pendingCount} Pending
             </div>
-            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
               Orders awaiting processing clearance
             </p>
           </div>
@@ -151,9 +151,9 @@ export default function RiskPage() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
           
           {/* Failed / Cancelled list table (col-span-7) */}
-          <div className="xl:col-span-7 fintech-card min-h-[340px] flex flex-col justify-between border-red-500/10">
+          <div className="xl:col-span-7 fintech-card min-h-[340px] flex flex-col justify-between border-rose-500/10">
             <div>
-              <h4 className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+              <h4 className="text-[10px] font-semibold text-rose-500 uppercase tracking-wider mb-1 flex items-center gap-1">
                 <AlertTriangle size={12} />
                 Critical Leakage Log Feed
               </h4>
@@ -167,12 +167,12 @@ export default function RiskPage() {
                 </div>
               ) : (
                 calculations.cancelledTx.slice(0, 5).map((t, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-xs p-3 rounded-lg bg-red-500/5 border border-red-500/10 hover:border-red-500/20 transition">
+                  <div key={idx} className="flex justify-between items-center text-xs p-3 rounded-lg bg-rose-500/5 border border-rose-500/10 hover:border-rose-500/20 transition">
                     <div className="flex flex-col gap-0.5 truncate mr-3">
-                      <span className="font-extrabold text-[var(--text-primary)] truncate max-w-[200px]">{t.customerName}</span>
+                      <span className="font-semibold text-[var(--text-primary)] truncate max-w-[200px]">{t.customerName}</span>
                       <span className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">{t.productName}</span>
                     </div>
-                    <span className="text-red-500 font-extrabold">{formatCurrency(Number(t.amount))}</span>
+                    <span className="text-rose-500 font-semibold">{formatCurrency(Number(t.amount))}</span>
                   </div>
                 ))
               )}
@@ -182,7 +182,7 @@ export default function RiskPage() {
           {/* Ratios pie chart (col-span-5) */}
           <div className="xl:col-span-5 fintech-card h-[340px] flex flex-col justify-between">
             <div>
-              <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
+              <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
                 SLA Status Ratios
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Breakdown of transaction statuses</p>
