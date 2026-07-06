@@ -187,7 +187,7 @@ const ShellContent: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
         <footer className="py-6 border-t border-[var(--border-color)] text-center mt-auto">
           <p className="text-[11px] text-[var(--text-secondary)]">
-            Analytical Console &copy; {new Date().getFullYear()} Apex Analytics. All rights reserved.
+            Analytical Console &copy; {new Date().getFullYear()} Executive Analytics. All rights reserved.
           </p>
         </footer>
       </div>
