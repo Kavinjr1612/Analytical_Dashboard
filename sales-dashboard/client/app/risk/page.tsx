@@ -13,28 +13,92 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
 export default function RiskPage() {
-  const { charts, transactionsResponse, loading } = useDashboardContext();
+  const { 
+    charts, transactionsResponse, loading,
+    activeSchema, formatValue 
+  } = useDashboardContext();
   const currentTransactions = transactionsResponse?.transactions || [];
 
   const statusData = charts?.orderStatusDistribution || [];
   const totalCount = statusData.reduce((sum, item) => sum + item.count, 0);
 
-  const completedCount = statusData.find(i => i.status === 'Completed')?.count || 0;
-  const pendingCount = statusData.find(i => i.status === 'Pending')?.count || 0;
-  const cancelledCount = statusData.find(i => i.status === 'Cancelled')?.count || 0;
+  const statusLabel = activeSchema.status || 'Status';
+  const amountLabel = activeSchema.amount || 'Value';
+  const customerLabel = activeSchema.customerName || 'Identifier';
 
-  // 1. Calculations
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0];
+      const itemName = data.payload?.category 
+        || data.payload?.region 
+        || data.payload?.status 
+        || data.payload?.productName 
+        || data.payload?.customerName
+        || data.payload?.name 
+        || data.name 
+        || label;
+        
+      return (
+        <div className="p-3 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)] shadow-xl flex flex-col gap-1 text-[11px] leading-tight">
+          {itemName && (
+            <span className="font-extrabold text-[var(--text-primary)]">
+              {itemName}
+            </span>
+          )}
+          <span className="font-semibold text-[var(--accent-color)] text-xs">
+            {data.value} records
+          </span>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // 1. Classify status values dynamically to avoid hardcoding Completed, Pending, Cancelled
+  const parsedStatusGroups = useMemo(() => {
+    let completed = 0;
+    let pending = 0;
+    let critical = 0;
+    
+    const criticalItems: { status: string; count: number }[] = [];
+    const pendingItems: { status: string; count: number }[] = [];
+    const completedItems: { status: string; count: number }[] = [];
+
+    statusData.forEach(item => {
+      const s = item.status.toLowerCase();
+      if (s.includes('cancel') || s.includes('fail') || s.includes('error') || s.includes('abort') || s.includes('reject') || s.includes('deny') || s.includes('invalid') || s.includes('500') || s.includes('400') || s.includes('503') || s.includes('failed')) {
+        critical += item.count;
+        criticalItems.push(item);
+      } else if (s.includes('pending') || s.includes('warning') || s.includes('warn') || s.includes('progress') || s.includes('hold') || s.includes('await') || s.includes('process')) {
+        pending += item.count;
+        pendingItems.push(item);
+      } else {
+        completed += item.count;
+        completedItems.push(item);
+      }
+    });
+
+    return {
+      completed,
+      pending,
+      critical,
+      criticalItems,
+      pendingItems,
+      completedItems
+    };
+  }, [statusData]);
+
+  // 2. Calculations based on groups
   const calculations = useMemo(() => {
-    // Total cost of cancellations (Revenue Leakage)
-    const cancelledTx = currentTransactions.filter(t => t.status === 'Cancelled');
-    const leakage = cancelledTx.reduce((sum, t) => sum + Number(t.amount), 0);
+    const criticalStatusNames = new Set(parsedStatusGroups.criticalItems.map(i => i.status));
+    const criticalTx = currentTransactions.filter(t => criticalStatusNames.has(t.status) || t.status.toLowerCase().includes('cancel') || t.status.toLowerCase().includes('fail'));
+    const leakage = criticalTx.reduce((sum, t) => sum + Number(t.amount), 0);
 
-    // Operational pressure: percentage of pending + cancelled logs
-    const pressurePct = totalCount > 0 ? ((pendingCount + cancelledCount) / totalCount) * 100 : 0;
+    // Operational pressure: percentage of pending + critical logs
+    const pressurePct = totalCount > 0 ? ((parsedStatusGroups.pending + parsedStatusGroups.critical) / totalCount) * 100 : 0;
 
     // Risk score out of 100
-    // Higher cancelled and pending counts increase the risk score
-    const baseRisk = totalCount > 0 ? ((cancelledCount * 1.5 + pendingCount * 0.8) / totalCount) * 100 : 0;
+    const baseRisk = totalCount > 0 ? ((parsedStatusGroups.critical * 1.5 + parsedStatusGroups.pending * 0.8) / totalCount) * 100 : 0;
     const finalRisk = Math.min(100, Math.round(baseRisk));
 
     let riskLevel = 'LOW';
@@ -53,30 +117,18 @@ export default function RiskPage() {
       finalRisk,
       riskLevel,
       riskColor,
-      cancelledTx
+      criticalTx
     };
-  }, [currentTransactions, totalCount, pendingCount, cancelledCount]);
-
-  // 2. Cancellation by category details
-  const cancellationByCategory = useMemo(() => {
-    const counts: Record<string, number> = {};
-    calculations.cancelledTx.forEach(t => {
-      counts[t.category] = (counts[t.category] || 0) + Number(t.amount);
-    });
-    return Object.entries(counts).map(([cat, val]) => ({
-      category: cat,
-      revenue: val
-    })).sort((a,b) => b.revenue - a.revenue);
-  }, [calculations.cancelledTx]);
+  }, [currentTransactions, totalCount, parsedStatusGroups]);
 
   // Status Pie chart data
   const pieData = useMemo(() => {
     return [
-      { name: 'Completed', value: completedCount, color: '#10b981' },
-      { name: 'Pending', value: pendingCount, color: '#f59e0b' },
-      { name: 'Cancelled', value: cancelledCount, color: '#F43F5E' } // Rose
+      { name: 'Resolved / Success', value: parsedStatusGroups.completed, color: '#10b981' },
+      { name: 'In Progress / Pending', value: parsedStatusGroups.pending, color: '#f59e0b' },
+      { name: 'Critical / Failed', value: parsedStatusGroups.critical, color: '#F43F5E' }
     ].filter(item => item.value > 0);
-  }, [completedCount, pendingCount, cancelledCount]);
+  }, [parsedStatusGroups]);
 
   return (
     <EmptyStateWrapper>
@@ -88,7 +140,7 @@ export default function RiskPage() {
           <div>
             <h4 className="text-xs font-semibold text-[var(--text-primary)]">Operations Risk Takeaways</h4>
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
-              This panel aggregates data quality and transaction status risks. **Revenue Leakage** tracks the exact amount of potential revenue lost due to cancelled sales logs. **Operational Backlog** shows transactions marked as Pending which require shipping or invoice clearance. The **System Risk Index** synthesizes this into an overall risk percentage: scores above 30% indicate high operational friction.
+              This panel aggregates data quality and {statusLabel.toLowerCase()} risks. **Value Deviation Leakage** tracks the exact amount of potential value lost due to records in failed or cancelled status states. **Operational Backlog** shows records currently in progress or warning states. The **System Risk Index** synthesizes this into an overall risk percentage: scores above 30% indicate high operational friction.
             </p>
           </div>
         </div>
@@ -100,7 +152,7 @@ export default function RiskPage() {
             <div className="flex justify-between items-center mb-3">
               <span className="metric-label flex items-center gap-1">
                 <span>System Risk Index</span>
-                <span title="Calculates operational load: (Cancelled*1.5 + Pending*0.8) / Total * 100."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+                <span title="Calculates operational load: (Failed*1.5 + Pending*0.8) / Total * 100."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </span>
               <ShieldAlert className="text-rose-500" size={16} />
             </div>
@@ -119,16 +171,16 @@ export default function RiskPage() {
           <div className="fintech-card flex flex-col justify-between border-rose-500/10">
             <div className="flex justify-between items-center mb-3">
               <span className="metric-label flex items-center gap-1">
-                <span>Revenue Leakage</span>
-                <span title="Sum of transaction amounts for items whose status is Cancelled."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+                <span>Value Deviation Leakage</span>
+                <span title="Sum of transaction amounts for items whose status is Cancelled or Failed."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </span>
               <XCircle className="text-rose-500" size={16} />
             </div>
             <div className="metric-value text-rose-500">
-              {formatCurrency(calculations.leakage)}
+              {formatValue(calculations.leakage)}
             </div>
             <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
-              Lost value from cancelled orders
+              Lost value from failed states
             </p>
           </div>
 
@@ -139,10 +191,10 @@ export default function RiskPage() {
               <Clock className="text-amber-500" size={16} />
             </div>
             <div className="metric-value text-amber-500">
-              {pendingCount} Pending
+              {parsedStatusGroups.pending} Pending
             </div>
             <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
-              Orders awaiting processing clearance
+              Records awaiting resolution clearance
             </p>
           </div>
         </div>
@@ -155,24 +207,24 @@ export default function RiskPage() {
             <div>
               <h4 className="text-[10px] font-semibold text-rose-500 uppercase tracking-wider mb-1 flex items-center gap-1">
                 <AlertTriangle size={12} />
-                Critical Leakage Log Feed
+                Critical Deviation Log Feed
               </h4>
-              <p className="text-[9px] text-[var(--text-secondary)] italic">List of cancelled transactions requiring review</p>
+              <p className="text-[9px] text-[var(--text-secondary)] italic">List of failed or cancelled records requiring review</p>
             </div>
 
             <div className="flex-1 mt-4 space-y-2 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar">
-              {calculations.cancelledTx.length === 0 ? (
+              {calculations.criticalTx.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-xs text-emerald-500 font-semibold">
-                  Zero cancellation leaks captured in this database.
+                  Zero critical deviation leaks captured.
                 </div>
               ) : (
-                calculations.cancelledTx.slice(0, 5).map((t, idx) => (
+                calculations.criticalTx.slice(0, 5).map((t, idx) => (
                   <div key={idx} className="flex justify-between items-center text-xs p-3 rounded-lg bg-rose-500/5 border border-rose-500/10 hover:border-rose-500/20 transition">
                     <div className="flex flex-col gap-0.5 truncate mr-3">
                       <span className="font-semibold text-[var(--text-primary)] truncate max-w-[200px]">{t.customerName}</span>
                       <span className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase">{t.productName}</span>
                     </div>
-                    <span className="text-rose-500 font-semibold">{formatCurrency(Number(t.amount))}</span>
+                    <span className="text-rose-500 font-semibold">{formatValue(Number(t.amount))}</span>
                   </div>
                 ))
               )}
@@ -183,7 +235,7 @@ export default function RiskPage() {
           <div className="xl:col-span-5 fintech-card h-[340px] flex flex-col justify-between">
             <div>
               <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
-                SLA Status Ratios
+                {statusLabel} Status Ratios
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Breakdown of transaction statuses</p>
             </div>
@@ -208,9 +260,7 @@ export default function RiskPage() {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-                    />
+                    <Tooltip content={<CustomTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
               )}

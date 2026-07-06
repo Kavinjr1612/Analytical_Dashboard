@@ -2,12 +2,14 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useDashboard } from '../hooks/useDashboard';
-import { FilterParams, DashboardSummary, DashboardCharts, Dataset } from '../types';
+import { FilterParams, DashboardSummary, DashboardCharts, Dataset, SchemaProfile } from '../types';
 import { PaginatedTransactionsResponse } from '../services/api';
 
 interface DashboardContextType {
   theme: 'dark' | 'light';
   toggleTheme: () => void;
+  activeSchema: SchemaProfile;
+  formatValue: (val: number, type?: 'currency' | 'number' | 'percentage') => string;
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   datasets: Dataset[];

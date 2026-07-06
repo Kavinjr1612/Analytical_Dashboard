@@ -13,11 +13,45 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
 export default function RegionsPage() {
-  const { charts, transactionsResponse, loading, setRegionFilter } = useDashboardContext();
+  const { 
+    charts, transactionsResponse, loading, setRegionFilter,
+    activeSchema, formatValue 
+  } = useDashboardContext();
   const currentTransactions = transactionsResponse?.transactions || [];
 
   const regionData = charts?.salesByRegion || [];
   const totalRegionalSales = regionData.reduce((sum, r) => sum + r.value, 0);
+
+  const amountLabel = activeSchema.amount || 'Value';
+  const regionLabel = activeSchema.region || 'Region';
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0];
+      const itemName = data.payload?.category 
+        || data.payload?.region 
+        || data.payload?.status 
+        || data.payload?.productName 
+        || data.payload?.customerName
+        || data.payload?.name 
+        || data.name 
+        || label;
+        
+      return (
+        <div className="p-3 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)] shadow-xl flex flex-col gap-1 text-[11px] leading-tight">
+          {itemName && (
+            <span className="font-extrabold text-[var(--text-primary)]">
+              {itemName}
+            </span>
+          )}
+          <span className="font-semibold text-[var(--accent-color)] text-xs">
+            {formatValue(Number(data.value ?? 0))}
+          </span>
+        </div>
+      );
+    }
+    return null;
+  };
 
   // 1. Calculate Regional Growth Velocity Index
   // Compare revenue in the first half of dates vs the second half of dates per region
@@ -64,9 +98,9 @@ export default function RegionsPage() {
       .map(rv => {
         let reason = '';
         if (rv.velocity < 0) {
-          reason = `Negative momentum detected. Sales decelerated by ${Math.abs(rv.velocity).toFixed(1)}% period-over-period.`;
+          reason = `Negative momentum detected. Volume decelerated by ${Math.abs(rv.velocity).toFixed(1)}% period-over-period.`;
         } else {
-          reason = `Underperforming regional volume. Revenue sits ${((1 - (rv.value / (totalRegionalSales / (regionData.length || 1)))) * 100).toFixed(0)}% below target average.`;
+          reason = `Underperforming density. Sum sits ${((1 - (rv.value / (totalRegionalSales / (regionData.length || 1)))) * 100).toFixed(0)}% below target average.`;
         }
         return {
           region: rv.region,
@@ -108,7 +142,7 @@ export default function RegionsPage() {
           <div>
             <h4 className="text-xs font-semibold text-[var(--text-primary)]">Geographical Intelligence Takeaways</h4>
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
-              This screen tracks sales metrics sorted by region. **Growth Velocity** index measures sales momentum by comparing the second half of dates to the first half. A positive percentage represents sales acceleration, while a negative percentage flags market cooling. The **Risk Weakness Feed** alerts you to operating zones that have decelerating growth or whose revenue sits at least 30% below target averages.
+              This screen tracks {amountLabel.toLowerCase()} metrics sorted by {regionLabel.toLowerCase()}. **Growth Velocity** index measures segment momentum by comparing the second half of dates to the first half. A positive percentage represents acceleration, while a negative percentage flags market cooling. The **Risk Weakness Feed** alerts you to operating zones that have decelerating growth or whose sum sits at least 30% below target averages.
             </p>
           </div>
         </div>
@@ -120,17 +154,17 @@ export default function RegionsPage() {
           <div className="xl:col-span-7 fintech-card h-[360px] flex flex-col justify-between">
             <div>
               <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1">
-                <span>Regional Revenue Volume</span>
-                <span title="Bar rankings showing total gross revenue generated in each active region."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
+                <span>{regionLabel} Volume Rankings</span>
+                <span title={`Bar rankings showing total gross ${amountLabel.toLowerCase()} generated in each active region.`}><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
-                Sales rankings by geographical operating divisions
+                Rankings by geographical operating divisions
               </p>
             </div>
             
             <div className="flex-1 w-full min-h-0 mt-4 text-xs">
               {regionData.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-xs text-[var(--text-secondary)]">No regional data</div>
+                <div className="h-full flex items-center justify-center text-xs text-[var(--text-secondary)]">No active data</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={regionData}>
@@ -138,13 +172,10 @@ export default function RegionsPage() {
                     <YAxis 
                       stroke="var(--text-secondary)" 
                       fontSize={9} 
-                      tickFormatter={(v) => `$${v.toLocaleString()}`}
+                      tickFormatter={(v) => formatValue(v)}
                       domain={regionYDomain}
                     />
-                    <Tooltip 
-                      contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-                      formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
-                    />
+                    <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="value" fill="var(--accent-color)" radius={[4, 4, 0, 0]} onClick={(data: any) => data && setRegionFilter(data.region)}>
                       {regionData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
@@ -156,7 +187,7 @@ export default function RegionsPage() {
                           offset={8} 
                           fontSize={8} 
                           fill="var(--text-secondary)" 
-                          formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                          formatter={(v: any) => typeof v === 'number' ? formatValue(v) : v}
                         />
                       )}
                     </Bar>
@@ -170,8 +201,8 @@ export default function RegionsPage() {
           <div className="xl:col-span-5 fintech-card h-[360px] flex flex-col justify-between">
             <div>
               <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1">
-                <span>Geographical Distribution</span>
-                <span title="Radar spreads showing variance and concentrations of territory revenue."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
+                <span>{regionLabel} Geographical Distribution</span>
+                <span title="Radar spreads showing variance and concentrations of territory volume."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Radar spread visualizing regional concentration
@@ -187,7 +218,8 @@ export default function RegionsPage() {
                     <PolarGrid stroke="var(--border-color)" opacity={0.1} />
                     <PolarAngleAxis dataKey="region" stroke="var(--text-secondary)" fontSize={9} />
                     <PolarRadiusAxis stroke="var(--text-secondary)" fontSize={8} />
-                    <Radar name="Revenue" dataKey="value" stroke="var(--accent-color)" fill="var(--accent-color)" fillOpacity={0.08} />
+                    <Radar name={amountLabel} dataKey="value" stroke="var(--accent-color)" fill="var(--accent-color)" fillOpacity={0.08} />
+                    <Tooltip content={<CustomTooltip />} />
                   </RadarChart>
                 </ResponsiveContainer>
               )}
@@ -202,7 +234,7 @@ export default function RegionsPage() {
           <div className="lg:col-span-7 fintech-card min-h-[300px] flex flex-col justify-between">
             <div>
               <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
-                Regional Growth Velocity
+                {regionLabel} Growth Velocity
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Calculated Period-over-Period acceleration percentages</p>
             </div>
@@ -218,12 +250,12 @@ export default function RegionsPage() {
                         {index + 1}
                       </span>
                       <span className="font-extrabold text-[var(--text-primary)] cursor-pointer hover:underline" onClick={() => setRegionFilter(rv.region)}>
-                        {rv.region} Region
+                        {rv.region}
                       </span>
                     </div>
                     
                     <div className="flex items-center gap-6">
-                      <span className="text-[var(--text-secondary)]">{formatCurrency(rv.value)}</span>
+                      <span className="text-[var(--text-secondary)]">{formatValue(rv.value)}</span>
                       <span className={`font-extrabold flex items-center gap-0.5 text-xs ${rv.velocity >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                         {rv.velocity >= 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
                         {rv.velocity.toFixed(1)}%

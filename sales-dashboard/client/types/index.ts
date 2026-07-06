@@ -61,3 +61,14 @@ export interface Dataset {
   importedAt: string;
   rowCount: number;
 }
+
+export interface SchemaProfile {
+  amountType: 'currency' | 'number' | 'percentage';
+  amount: string;
+  category: string;
+  region: string;
+  customerName: string;
+  productName: string;
+  status: string;
+  transactionDate: string;
+}

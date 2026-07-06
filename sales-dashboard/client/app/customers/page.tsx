@@ -13,8 +13,14 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
 export default function CustomersPage() {
-  const { transactionsResponse, loading } = useDashboardContext();
+  const { 
+    transactionsResponse, loading,
+    activeSchema, formatValue 
+  } = useDashboardContext();
   const currentTransactions = transactionsResponse?.transactions || [];
+
+  const customerLabel = activeSchema.customerName || 'Identifier';
+  const amountLabel = activeSchema.amount || 'Value';
 
   // 1. Calculate high value customers & spend aggregates
   const customerAnalytics = useMemo(() => {
@@ -78,12 +84,11 @@ export default function CustomersPage() {
         customerFirstMonth[t.customerName] = month;
       }
       if (!customerActivityMonths[t.customerName]) {
-        customerActivityMonths[t.customerName] = new Set();
+        customerActivityMonths[t.customerName] = new Set<string>();
       }
       customerActivityMonths[t.customerName].add(month);
     });
 
-    // We can average Month-over-Month return rates for month 1, 2, 3, 4 etc.
     const monthOffsets = [0, 1, 2, 3, 4, 5];
     const cohortCounts = monthOffsets.map(offset => {
       let activeInStart = 0;

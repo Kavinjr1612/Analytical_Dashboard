@@ -13,7 +13,10 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
 export default function RevenuePage() {
-  const { charts, transactionsResponse, loading, errors } = useDashboardContext();
+  const { 
+    charts, transactionsResponse, loading, errors,
+    activeSchema, formatValue 
+  } = useDashboardContext();
   const currentTransactions = transactionsResponse?.transactions || [];
 
   const trendData = charts?.revenueTrend || [];
@@ -79,16 +82,15 @@ export default function RevenuePage() {
         date,
         aov: data.count > 0 ? Math.round(data.total / data.count) : 0
       }))
-      .sort((a,b) => a.date.localeCompare(b.date));
+      .sort((a, b) => a.date.localeCompare(b.date));
   }, [currentTransactions]);
 
+  // Calculate dynamic Y-axis domain based on exact data spread
   const revenueYDomain = useMemo<any>(() => {
-    if (regressionData.length === 0) return [0, 'auto'];
-    const values = regressionData.map((d: any) => Number(d.revenue || 0));
-    const trendValues = regressionData.map((d: any) => Number(d.trend || 0));
-    const allValues = [...values, ...trendValues];
-    const minVal = Math.min(...allValues);
-    const maxVal = Math.max(...allValues);
+    if (trendData.length === 0) return [0, 'auto'];
+    const values = trendData.map((d: any) => Number(d.revenue || 0));
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
     const spread = maxVal - minVal;
     
     if (spread === 0) {
@@ -102,7 +104,7 @@ export default function RevenuePage() {
       Math.max(0, Math.floor(minVal - (spread * 0.08))),
       Math.ceil(maxVal + (spread * 0.08))
     ];
-  }, [regressionData]);
+  }, [trendData]);
 
   const aovYDomain = useMemo<any>(() => {
     if (monthlyAOV.length === 0) return [0, 'auto'];
@@ -125,6 +127,8 @@ export default function RevenuePage() {
   }, [monthlyAOV]);
 
   const primaryAccent = '#22D3EE'; // Cyan
+  
+  const amountLabel = activeSchema?.amount || 'Value';
 
   return (
     <EmptyStateWrapper>
@@ -134,9 +138,9 @@ export default function RevenuePage() {
         <div className="p-4 rounded-xl bg-[var(--accent-glow)] border border-[var(--accent-color)]/20 flex items-start gap-3">
           <Activity size={16} className="text-[var(--accent-color)] mt-0.5 flex-shrink-0" />
           <div>
-            <h4 className="text-xs font-semibold text-[var(--text-primary)]">Financial Intelligence Takeaways</h4>
+            <h4 className="text-xs font-semibold text-[var(--text-primary)]">{amountLabel} Intelligence Takeaways</h4>
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
-              This screen visualizes historical gross sales revenue alongside a statistical **Linear Regression Trend Line** (represented by the dashed Rose index). Linear regression helps you spot the overall trajectory of business growth while filtering out temporary seasonal spikes. If you notice standard deviation anomalies in the feed below, these represent historical dates with abnormal sales activity.
+              This screen visualizes historical gross {amountLabel} alongside a statistical **Linear Regression Trend Line** (represented by the dashed Rose index). Linear regression helps you spot the overall trajectory of business growth while filtering out temporary seasonal spikes. If you notice standard deviation anomalies in the feed below, these represent historical dates with abnormal {amountLabel} activity.
             </p>
           </div>
         </div>
@@ -146,15 +150,15 @@ export default function RevenuePage() {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1">
-                <span>Revenue War Room</span>
-                <span title="Visualizes gross sales over time with linear trend line projection overlay."><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
+                <span>{amountLabel} Analysis Room</span>
+                <span title={`Visualizes gross ${amountLabel} over time with linear trend line projection overlay.`}><HelpCircle size={11} className="opacity-60 cursor-help" /></span>
               </h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
-                Financial trend analytics with linear regression projection
+                Trend analytics with linear regression projection
               </p>
             </div>
             <div className="flex items-center gap-4 text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-[#22D3EE]" /> Ingested Revenue</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-[#22D3EE]" /> Ingested {amountLabel}</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-dashed border-[#F43F5E]" /> Trend Line</span>
             </div>
           </div>
@@ -176,12 +180,12 @@ export default function RevenuePage() {
                   <YAxis 
                     stroke="var(--text-secondary)" 
                     fontSize={9} 
-                    tickFormatter={(v) => `$${v.toLocaleString()}`}
+                    tickFormatter={(v) => formatValue(v)}
                     domain={revenueYDomain}
                   />
                   <Tooltip 
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-                    formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
+                    formatter={(value: any) => [formatValue(value), amountLabel]}
                   />
                   <Area 
                     type="monotone" 
@@ -190,7 +194,7 @@ export default function RevenuePage() {
                     strokeWidth={1.5} 
                     fillOpacity={1} 
                     fill="url(#colorRevenue)" 
-                    name="Ingested Revenue"
+                    name={`Ingested ${amountLabel}`}
                     dot={{ r: 3, stroke: primaryAccent, strokeWidth: 1, fill: 'var(--bg-color)' }}
                     activeDot={{ r: 5, strokeWidth: 0 }}
                   >
@@ -201,7 +205,7 @@ export default function RevenuePage() {
                         offset={10} 
                         fontSize={8} 
                         fill="var(--text-secondary)" 
-                        formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                        formatter={(v: any) => typeof v === 'number' ? formatValue(v) : v}
                       />
                     )}
                   </Area>
@@ -227,8 +231,8 @@ export default function RevenuePage() {
           <div className="xl:col-span-5 fintech-card h-[310px] flex flex-col justify-between">
             <div>
               <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1 flex items-center gap-1">
-                <span>Average Ticket (AOV) Trend</span>
-                <span title="Measures the average spend per order (Total Revenue / Total Orders)."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+                <span>Average {amountLabel} Density Trend</span>
+                <span title={`Measures the average ${amountLabel} per transaction.`}><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Averaged transaction values per month</p>
             </div>
@@ -242,12 +246,12 @@ export default function RevenuePage() {
                     <YAxis 
                       stroke="var(--text-secondary)" 
                       fontSize={9} 
-                      tickFormatter={(v) => `$${v}`}
+                      tickFormatter={(v) => formatValue(v)}
                       domain={aovYDomain}
                     />
                     <Tooltip 
                       contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-                      formatter={(value: any) => [`$${value}`, 'AOV']}
+                      formatter={(value: any) => [formatValue(value), `Avg ${amountLabel}`]}
                     />
                     <Bar dataKey="aov" fill="#6366F1" radius={[4, 4, 0, 0]}>
                       {monthlyAOV.length <= 15 && (
@@ -257,7 +261,7 @@ export default function RevenuePage() {
                           offset={8} 
                           fontSize={8} 
                           fill="var(--text-secondary)" 
-                          formatter={(v: any) => typeof v === 'number' ? `$${v}` : v}
+                          formatter={(v: any) => typeof v === 'number' ? formatValue(v) : v}
                         />
                       )}
                     </Bar>
@@ -271,8 +275,8 @@ export default function RevenuePage() {
           <div className="xl:col-span-4 fintech-card h-[310px] flex flex-col justify-between">
             <div>
               <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1 flex items-center gap-1">
-                <span>Revenue Anomalies Feed</span>
-                <span title="Flags dates where gross revenue deviated by more than 1.8x the standard deviation from the mean."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+                <span>{amountLabel} Anomalies Feed</span>
+                <span title={`Flags dates where gross ${amountLabel} deviated by more than 1.8x the standard deviation from the mean.`}><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
               </h4>
               <p className="text-[9px] text-[var(--text-secondary)] italic">Flags periods with standard deviation changes</p>
             </div>
@@ -292,7 +296,7 @@ export default function RevenuePage() {
                       </span>
                     </div>
                     <span className="text-red-500 font-extrabold flex items-center gap-0.5 text-[11px]">
-                      <AlertCircle size={12} /> {formatCurrency(anom.revenue)}
+                      <AlertCircle size={12} /> {formatValue(anom.revenue)}
                     </span>
                   </div>
                 ))
@@ -314,14 +318,16 @@ export default function RevenuePage() {
                 <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wide">Rolling 3-Period Avg</span>
                 <p className="text-lg font-extrabold text-[var(--text-primary)] mt-1">
                   {trendData.length >= 3 
-                    ? formatCurrency((trendData[trendData.length-1].revenue + trendData[trendData.length-2].revenue + trendData[trendData.length-3].revenue)/3)
-                    : '$0'
+                    ? formatValue((trendData[trendData.length-1].revenue + trendData[trendData.length-2].revenue + trendData[trendData.length-3].revenue)/3)
+                    : '0'
                   }
                 </p>
               </div>
 
               <div className="p-3 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)]">
-                <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wide">Historical Growth Variance</span>
+                <span className="w-full text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wide flex justify-between items-center">
+                  <span>Growth Direction</span>
+                </span>
                 <p className="text-lg font-extrabold text-emerald-500 mt-1 flex items-center gap-1">
                   <TrendingUp size={16} /> Stable
                 </p>

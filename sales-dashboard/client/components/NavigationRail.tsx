@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -16,21 +16,21 @@ interface NavSection {
   icon: React.ReactNode;
 }
 
-const SECTIONS: NavSection[] = [
-  { path: '/', label: 'Data Intake', icon: <UploadCloud size={16} /> },
-  { path: '/overview', label: 'Overview', icon: <Gauge size={16} /> },
-  { path: '/revenue', label: 'Revenue', icon: <TrendingUp size={16} /> },
-  { path: '/markets', label: 'Markets', icon: <BarChart3 size={16} /> },
-  { path: '/regions', label: 'Regions', icon: <Map size={16} /> },
-  { path: '/customers', label: 'Customers', icon: <Users size={16} /> },
-  { path: '/risk', label: 'Risk Analytics', icon: <ShieldAlert size={16} /> },
-  { path: '/ledger', label: 'Ledger', icon: <Table size={16} /> },
-  { path: '/forecast', label: 'Forecast', icon: <LineChart size={16} /> },
-];
-
 export const NavigationRail: React.FC = () => {
   const pathname = usePathname();
-  const { isSidebarCollapsed, toggleSidebar } = useDashboardContext();
+  const { isSidebarCollapsed, toggleSidebar, activeSchema } = useDashboardContext();
+
+  const sections = useMemo<NavSection[]>(() => [
+    { path: '/', label: 'Data Intake', icon: <UploadCloud size={16} /> },
+    { path: '/overview', label: 'Overview', icon: <Gauge size={16} /> },
+    { path: '/revenue', label: `${activeSchema.amount || 'Value'} Trend`, icon: <TrendingUp size={16} /> },
+    { path: '/markets', label: `${activeSchema.category || 'Category'} Rank`, icon: <BarChart3 size={16} /> },
+    { path: '/regions', label: `${activeSchema.region || 'Region'} Map`, icon: <Map size={16} /> },
+    { path: '/customers', label: `${activeSchema.customerName || 'Identifier'} Pool`, icon: <Users size={16} /> },
+    { path: '/risk', label: `${activeSchema.status || 'Status'} Control`, icon: <ShieldAlert size={16} /> },
+    { path: '/ledger', label: 'Data Ledger', icon: <Table size={16} /> },
+    { path: '/forecast', label: 'Forecast', icon: <LineChart size={16} /> },
+  ], [activeSchema]);
   const [scrollProgress, setScrollProgress] = useState(0);
   const rafRef = React.useRef<number | null>(null);
 
@@ -85,7 +85,7 @@ export const NavigationRail: React.FC = () => {
         {/* Section Links */}
         <div className="flex-1 flex flex-col justify-between py-6 px-3">
           <div className="space-y-1.5">
-            {SECTIONS.map((section) => {
+            {sections.map((section) => {
               const isActive = pathname === section.path;
               return (
                 <Link
@@ -136,7 +136,7 @@ export const NavigationRail: React.FC = () => {
       {/* Mobile: Horizontal Nav Bar */}
       <nav className="nav-mobile sticky top-[64px] z-45 border-b border-[var(--border-color)] bg-[var(--surface-color)]/95 backdrop-blur-md overflow-x-auto lg:hidden" aria-label="Dashboard sections mobile">
         <div className="flex items-center gap-1 px-3 py-2 min-w-max">
-          {SECTIONS.map((section) => {
+          {sections.map((section) => {
             const isActive = pathname === section.path;
             return (
               <Link

@@ -29,6 +29,23 @@ interface ColumnMapping {
   transactionDate: string;
 }
 
+const inferAmountType = (header: string, sampleValue: any): 'currency' | 'number' | 'percentage' => {
+  const h = header.toLowerCase();
+  const valStr = String(sampleValue || '').trim();
+  if (h.includes('percent') || h.includes('pct') || h.includes('%') || h.includes('rate') || h.includes('ratio') || valStr.includes('%')) {
+    return 'percentage';
+  }
+  if (
+    h.includes('price') || h.includes('revenue') || h.includes('sales') || 
+    h.includes('value') || h.includes('amount') || h.includes('cost') || 
+    h.includes('spend') || h.includes('fee') || h.includes('salary') || 
+    h.includes('usd') || valStr.startsWith('$') || valStr.startsWith('€') || valStr.startsWith('£')
+  ) {
+    return 'currency';
+  }
+  return 'number';
+};
+
 export default function DataIntakePage() {
   const { 
     datasets, uploadDataset, removeDataset, 
@@ -281,7 +298,26 @@ export default function DataIntakePage() {
       // Save column mapping profile for future matching structures
       saveSchemaProfile(parsedHeaders, inferredMapping);
 
-      await uploadDataset(file.name, formattedTransactions);
+      const dataset = await uploadDataset(file.name, formattedTransactions);
+      
+      // Determine value type (currency, percentage, number) from sample row
+      const sampleVal = parsedRows[0] ? parsedRows[0][inferredMapping.amount] : '';
+      const amountType = inferAmountType(inferredMapping.amount, sampleVal);
+      
+      // Save dataset-specific schema in localStorage
+      const schemaProfile = {
+        amountType,
+        amount: inferredMapping.amount,
+        category: inferredMapping.category || 'Category',
+        region: inferredMapping.region || 'Region',
+        customerName: inferredMapping.customerName || 'Customer Name',
+        productName: inferredMapping.productName || 'Product Name',
+        status: inferredMapping.status || 'Status',
+        transactionDate: inferredMapping.transactionDate || 'Transaction Date'
+      };
+      
+      localStorage.setItem(`dataset-schema-${dataset.id}`, JSON.stringify(schemaProfile));
+
       setUploadSuccess(true);
       setFile(null);
       setParsedHeaders([]);

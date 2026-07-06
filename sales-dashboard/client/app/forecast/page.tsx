@@ -13,9 +13,13 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
 export default function ForecastPage() {
-  const { charts, transactionsResponse, loading } = useDashboardContext();
+  const { 
+    charts, transactionsResponse, loading,
+    activeSchema, formatValue 
+  } = useDashboardContext();
 
   const trendData = charts?.revenueTrend || [];
+  const amountLabel = activeSchema.amount || 'Value';
 
   // Calculate mathematical forecasts & uncertainty cones
   const forecastAnalytics = useMemo(() => {
@@ -175,7 +179,7 @@ export default function ForecastPage() {
           <div>
             <h4 className="text-xs font-extrabold text-[var(--text-primary)]">Predictive Intelligence Takeaways</h4>
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1">
-              This screen utilizes statistical algorithms to project future revenue. **Moving Average** averages the last 3 active periods to project the immediate short-term index. **Trend Projection** uses a linear regression line to forecast long-term paths, surrounded by a shaded **Uncertainty Cone**. This cone represents a 95% standard error range; it widens in future periods to reflect increasing unpredictability.
+              This screen utilizes statistical algorithms to project future values. **Moving Average** averages the last 3 active periods to project the immediate short-term index. **Trend Projection** uses a linear regression line to forecast long-term paths, surrounded by a shaded **Uncertainty Cone**. This cone represents a 95% standard error range; it widens in future periods to reflect increasing unpredictability.
             </p>
           </div>
         </div>
@@ -229,14 +233,14 @@ export default function ForecastPage() {
                         <YAxis 
                           stroke="var(--text-secondary)" 
                           fontSize={9} 
-                          tickFormatter={(v) => `$${v.toLocaleString()}`}
+                          tickFormatter={(v) => formatValue(v)}
                           domain={forecastYDomain}
                         />
                         <Tooltip 
                           contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                           formatter={(value: any, name: any) => {
                             if (value === null) return [];
-                            return [`$${value.toLocaleString()}`, name];
+                            return [formatValue(value), name];
                           }}
                         />
                         {/* Shaded Uncertainty bounds */}
@@ -250,7 +254,7 @@ export default function ForecastPage() {
                           stroke="#6366F1" 
                           strokeWidth={1.5} 
                           fill="none" 
-                          name="Historical Sales"
+                          name={`Historical ${amountLabel}`}
                           dot={{ r: 3, stroke: '#6366F1', strokeWidth: 1, fill: 'var(--bg-color)' }}
                           activeDot={{ r: 5, strokeWidth: 0 }}
                         >
@@ -261,7 +265,7 @@ export default function ForecastPage() {
                               offset={10} 
                               fontSize={8} 
                               fill="var(--text-secondary)" 
-                              formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                              formatter={(v: any) => typeof v === 'number' ? formatValue(v) : v}
                             />
                           )}
                         </Area>
@@ -282,7 +286,7 @@ export default function ForecastPage() {
                               offset={10} 
                               fontSize={8} 
                               fill="var(--text-secondary)" 
-                              formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                              formatter={(v: any) => typeof v === 'number' ? formatValue(v) : v}
                             />
                           )}
                         </Area>
@@ -299,7 +303,7 @@ export default function ForecastPage() {
                 <div className="fintech-card flex flex-col justify-between">
                   <span className="metric-label">Rolling MA Projection</span>
                   <p className="metric-value mt-2 text-[var(--accent-color)]">
-                    {formatCurrency(forecastAnalytics.rollingAvg)}
+                    {formatValue(forecastAnalytics.rollingAvg)}
                   </p>
                   <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
                     Synthesized rolling 3-period average index
@@ -310,10 +314,10 @@ export default function ForecastPage() {
                 <div className="fintech-card flex flex-col justify-between">
                   <span className="metric-label">Next Period Estimated Range</span>
                   <p className="metric-value mt-2 text-[var(--text-primary)]">
-                    {formatCurrency(forecastAnalytics.predictedNext || 0)}
+                    {formatValue(forecastAnalytics.predictedNext || 0)}
                   </p>
                   <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
-                    Expected spread: {formatCurrency(forecastAnalytics.predictedNextLower || 0)} to {formatCurrency(forecastAnalytics.predictedNextUpper || 0)}
+                    Expected spread: {formatValue(forecastAnalytics.predictedNextLower || 0)} to {formatValue(forecastAnalytics.predictedNextUpper || 0)}
                   </p>
                 </div>
 

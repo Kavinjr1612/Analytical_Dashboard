@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { 
   FilterParams, 
   DashboardSummary, 
   DashboardCharts, 
-  Dataset
+  Dataset,
+  SchemaProfile
 } from '../types';
 import { 
   fetchDashboardSummary, 
@@ -89,6 +90,61 @@ export function useDashboard() {
     document.documentElement.classList.remove('dark', 'light');
     document.documentElement.classList.add(initialTheme);
   }, []);
+
+  // Sync active dataset ID from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedDatasetId = localStorage.getItem('analytics-active-dataset-id');
+      if (savedDatasetId) {
+        setFilters(prev => ({ ...prev, datasetId: savedDatasetId }));
+      }
+    }
+  }, []);
+
+  // Sync active dataset ID to localStorage when it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && filters.datasetId) {
+      localStorage.setItem('analytics-active-dataset-id', filters.datasetId);
+    }
+  }, [filters.datasetId]);
+
+  // Compute active dataset column schema mapping details dynamically
+  const activeSchema = useMemo<SchemaProfile>(() => {
+    const datasetId = filters.datasetId;
+    if (datasetId && datasetId !== 'all') {
+      const saved = localStorage.getItem(`dataset-schema-${datasetId}`);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to parse dataset schema:', e);
+        }
+      }
+    }
+    // Default fallback schema (sales context)
+    return {
+      amountType: 'currency',
+      amount: 'Amount',
+      category: 'Category',
+      region: 'Region',
+      customerName: 'Customer Name',
+      productName: 'Product Name',
+      status: 'Status',
+      transactionDate: 'Transaction Date'
+    };
+  }, [filters.datasetId]);
+
+  // Format currency, raw numeric counts, or ratios conditionally
+  const formatValue = useCallback((val: number, type?: 'currency' | 'number' | 'percentage') => {
+    const targetType = type || activeSchema.amountType || 'currency';
+    if (targetType === 'currency') {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+    } else if (targetType === 'percentage') {
+      return `${val.toLocaleString('en-US', { maximumFractionDigits: 2 })}%`;
+    } else {
+      return val.toLocaleString('en-US');
+    }
+  }, [activeSchema.amountType]);
 
   const toggleTheme = useCallback(() => {
     setTheme(prev => {
@@ -288,6 +344,8 @@ export function useDashboard() {
   return {
     theme,
     toggleTheme,
+    activeSchema,
+    formatValue,
     datasets,
     filters,
     searchVal,

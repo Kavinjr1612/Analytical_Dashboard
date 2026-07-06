@@ -13,11 +13,46 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
 export default function MarketsPage() {
-  const { charts, transactionsResponse, loading, setCategoryFilter } = useDashboardContext();
+  const { 
+    charts, transactionsResponse, loading, setCategoryFilter,
+    activeSchema, formatValue 
+  } = useDashboardContext();
   const currentTransactions = transactionsResponse?.transactions || [];
 
   const categoryData = charts?.salesByCategory || [];
   const totalCategorySales = categoryData.reduce((sum, c) => sum + c.value, 0);
+
+  const amountLabel = activeSchema.amount || 'Value';
+  const categoryLabel = activeSchema.category || 'Category';
+  const productLabel = activeSchema.productName || 'Product';
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0];
+      const itemName = data.payload?.category 
+        || data.payload?.region 
+        || data.payload?.status 
+        || data.payload?.productName 
+        || data.payload?.customerName
+        || data.payload?.name 
+        || data.name 
+        || label;
+        
+      return (
+        <div className="p-3 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)] shadow-xl flex flex-col gap-1 text-[11px] leading-tight">
+          {itemName && (
+            <span className="font-extrabold text-[var(--text-primary)]">
+              {itemName}
+            </span>
+          )}
+          <span className="font-semibold text-[var(--accent-color)] text-xs">
+            {formatValue(Number(data.value ?? 0))}
+          </span>
+        </div>
+      );
+    }
+    return null;
+  };
 
   // 1. Product Clusters: Identify top 5 selling items dynamically
   const topProducts = useMemo(() => {
@@ -76,21 +111,21 @@ export default function MarketsPage() {
     <EmptyStateWrapper>
       <div className="shell-container tab-transition max-w-[1700px] mx-auto flex flex-col gap-6">
         
-        {/* Row 1: Asymmetrical top block */}
+        {/* Row 1: Heatmap treemap and list */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
           
           {/* Dominance Heatmap (Treemap) (col-span-8) */}
           <div className="xl:col-span-8 fintech-card h-[380px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-[var(--text-primary)]">Market Share Treemap</h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">{categoryLabel} Size Treemap</h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
-                Heatmap density representing sales sizes by sector
+                Heatmap density representing {amountLabel} sizes by {categoryLabel}
               </p>
             </div>
             
             <div className="flex-1 w-full min-h-0 mt-4 text-xs">
               {categoryData.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-xs text-[var(--text-secondary)]">No categories ingested</div>
+                <div className="h-full flex items-center justify-center text-xs text-[var(--text-secondary)]">No {categoryLabel.toLowerCase()}s ingested</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <Treemap
@@ -100,10 +135,7 @@ export default function MarketsPage() {
                     stroke="var(--surface-color)"
                     fill="var(--accent-color)"
                   >
-                    <Tooltip 
-                      contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-                      formatter={(value: any) => [`$${value.toLocaleString()}`, 'Market Size']}
-                    />
+                    <Tooltip content={<CustomTooltip />} />
                   </Treemap>
                 </ResponsiveContainer>
               )}
@@ -113,9 +145,9 @@ export default function MarketsPage() {
           {/* Category distribution grid (col-span-4) */}
           <div className="xl:col-span-4 fintech-card h-[380px] flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-[var(--text-primary)]">Sector Breakdown</h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">{categoryLabel} Breakdown</h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
-                Market share percentage calculations
+                Relative segment ratio calculations
               </p>
             </div>
 
@@ -133,7 +165,7 @@ export default function MarketsPage() {
                     >
                       <div className="flex justify-between items-center text-xs mb-1.5">
                         <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colorsList[index % colorsList.length] }} />
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colorsList[index % colorsList.length] }} />
                           {c.category}
                         </span>
                         <span className="font-semibold text-[var(--accent-color)]">
@@ -141,8 +173,8 @@ export default function MarketsPage() {
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-[10px] text-[var(--text-secondary)]">
-                        <span>Total Revenue</span>
-                        <span>{formatCurrency(c.value)}</span>
+                        <span>Accumulated {amountLabel}</span>
+                        <span>{formatValue(c.value)}</span>
                       </div>
                     </div>
                   );
@@ -159,14 +191,14 @@ export default function MarketsPage() {
           <div className="lg:col-span-7 fintech-card min-h-[300px] flex flex-col justify-between">
             <div>
               <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
-                Top Performing Product Nodes
+                Top Performing {productLabel} Nodes
               </h4>
-              <p className="text-[9px] text-[var(--text-secondary)] italic">Calculated correlation aggregates</p>
+              <p className="text-[9px] text-[var(--text-secondary)] italic">Calculated concentration aggregates</p>
             </div>
 
             <div className="flex-1 mt-4 space-y-2">
               {topProducts.length === 0 ? (
-                <div className="py-8 text-center text-xs text-[var(--text-secondary)]">No product lists</div>
+                <div className="py-8 text-center text-xs text-[var(--text-secondary)]">No active lists</div>
               ) : (
                 topProducts.map((p, idx) => (
                   <div key={idx} className="flex justify-between items-center text-xs p-2.5 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)]">
@@ -175,8 +207,8 @@ export default function MarketsPage() {
                       <span className="text-[9px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">{p.category}</span>
                     </div>
                     <div className="flex items-center gap-4 text-[10.5px]">
-                      <span className="text-[var(--text-secondary)]">{p.count} units</span>
-                      <span className="text-[var(--accent-color)] font-semibold">{formatCurrency(p.sales)}</span>
+                      <span className="text-[var(--text-secondary)]">{p.count} entries</span>
+                      <span className="text-[var(--accent-color)] font-semibold">{formatValue(p.sales)}</span>
                     </div>
                   </div>
                 ))
@@ -190,40 +222,41 @@ export default function MarketsPage() {
               <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
                 Volume Rank Distribution
               </h4>
-              <p className="text-[9px] text-[var(--text-secondary)] italic">Category performance ranking bar vectors</p>
+              <p className="text-[9px] text-[var(--text-secondary)] italic">{categoryLabel} performance ranking vectors</p>
             </div>
 
             <div className="flex-1 w-full min-h-0 text-xs mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryData}>
-                  <XAxis dataKey="category" stroke="var(--text-secondary)" fontSize={9} />
-                  <YAxis 
-                    stroke="var(--text-secondary)" 
-                    fontSize={9} 
-                    tickFormatter={(v) => `$${v.toLocaleString()}`}
-                    domain={categoryYDomain}
-                  />
-                  <Tooltip 
-                    contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-                    formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
-                  />
-                  <Bar dataKey="value" fill="var(--accent-color)" radius={[4, 4, 0, 0]} onClick={(data: any) => data && setCategoryFilter(data.category)}>
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
-                    ))}
-                    {categoryData.length <= 15 && (
-                      <LabelList 
-                        dataKey="value" 
-                        position="top" 
-                        offset={8} 
-                        fontSize={8} 
-                        fill="var(--text-secondary)" 
-                        formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
-                      />
-                    )}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {categoryData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-xs text-[var(--text-secondary)]">No active rankings</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={categoryData}>
+                    <XAxis dataKey="category" stroke="var(--text-secondary)" fontSize={9} />
+                    <YAxis 
+                      stroke="var(--text-secondary)" 
+                      fontSize={9} 
+                      tickFormatter={(v) => formatValue(v)}
+                      domain={categoryYDomain}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="value" fill="var(--accent-color)" radius={[4, 4, 0, 0]} onClick={(data: any) => data && setCategoryFilter(data.category)}>
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
+                      ))}
+                      {categoryData.length <= 15 && (
+                        <LabelList 
+                          dataKey="value" 
+                          position="top" 
+                          offset={8} 
+                          fontSize={8} 
+                          fill="var(--text-secondary)" 
+                          formatter={(v: any) => typeof v === 'number' ? formatValue(v) : v}
+                        />
+                      )}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 

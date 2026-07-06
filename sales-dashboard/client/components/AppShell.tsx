@@ -15,7 +15,7 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
   const { 
     theme, toggleTheme, datasets, filters, 
     setDatasetFilter, searchVal, setSearchVal, 
-    setDateRangeFilter, handleExport 
+    setDateRangeFilter, handleExport, activeSchema 
   } = useDashboardContext();
 
   const isHome = pathname === '/';
@@ -27,19 +27,19 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
       case '/overview':
         return 'Overview Cockpit';
       case '/revenue':
-        return 'Revenue War Room';
+        return `${activeSchema.amount || 'Value'} Analysis`;
       case '/markets':
-        return 'Market Performance';
+        return `${activeSchema.category || 'Category'} Breakdown`;
       case '/regions':
-        return 'Regions Analytics';
+        return `${activeSchema.region || 'Region'} Distribution`;
       case '/customers':
-        return 'Client Intelligence';
+        return `${activeSchema.customerName || 'Identifier'} Cohorts`;
       case '/risk':
-        return 'Risk Analysis';
+        return `${activeSchema.status || 'Status'} Anomalies`;
       case '/ledger':
-        return 'Transaction Ledger';
+        return `${activeSchema.amount || 'Value'} Ledger`;
       case '/forecast':
-        return 'Predictive Intelligence';
+        return `${activeSchema.amount || 'Value'} Forecast`;
       case '/settings':
         return 'System Settings';
       default:
@@ -118,7 +118,7 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
                 <Search className="absolute left-3.5 top-[15.5px] text-[var(--text-secondary)]" size={13} />
                 <input
                   type="text"
-                  placeholder="Search transactions..."
+                  placeholder={`Search by ${activeSchema.customerName || 'identifier'}...`}
                   value={searchVal}
                   onChange={(e) => setSearchVal(e.target.value)}
                   style={{ paddingLeft: '40px' }}

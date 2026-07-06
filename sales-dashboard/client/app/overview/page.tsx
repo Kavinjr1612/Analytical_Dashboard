@@ -19,19 +19,17 @@ const formatNumber = (val: number) =>
 export default function OverviewPage() {
   const { 
     summary, charts, transactionsResponse, 
-    loading, errors, setCategoryFilter, setRegionFilter 
+    loading, errors, setCategoryFilter, setRegionFilter,
+    activeSchema, formatValue
   } = useDashboardContext();
 
   const currentTransactions = transactionsResponse?.transactions || [];
 
   // Calculate Mathematical Insight Confidence Score
-  // Confidence score takes rowCount, duplication penalty, and category counts to measure statistical soundness
   const getConfidenceScore = () => {
     if (!transactionsResponse || transactionsResponse.totalCount === 0) return 0;
     const count = transactionsResponse.totalCount;
-    // Row count saturation (larger dataset = higher confidence base)
     const baseScore = 70 + Math.min(25, (count / 200) * 5); // caps at 95
-    // Deduct standard error variables
     const consistencyScore = summary?.topSellingCategory !== 'N/A' ? 5 : 0;
     return Math.round(baseScore + consistencyScore);
   };
@@ -41,8 +39,26 @@ export default function OverviewPage() {
   // Generate dynamic text insights based on parsed DB totals
   const generateSummaryText = () => {
     if (!summary) return 'Ingesting business data streams...';
-    const rev = formatCurrency(summary.totalRevenue);
-    return `Analysis detects total consolidated revenue of ${rev} across ${formatNumber(summary.totalOrders)} transaction logs. Core market dominance is led by the ${summary.topSellingCategory} category segment, while the ${summary.bestPerformingRegion} region is identified as the highest-performing operations node. Strategic command confirms overall operational SLA levels are steady.`;
+    
+    const amountLabel = activeSchema.amount || 'Value';
+    const catLabel = activeSchema.category || 'Category';
+    const regLabel = activeSchema.region || 'Region';
+    const totalSum = formatValue(summary.totalRevenue);
+    const totalCount = formatNumber(summary.totalOrders);
+    
+    let summaryText = `The system has performed an analytical sweep of the active dataset. We have registered a total consolidated ${amountLabel} sum of ${totalSum} across ${totalCount} records. `;
+    
+    if (summary.topSellingCategory && summary.topSellingCategory !== 'N/A') {
+      summaryText += `The primary volume concentration resides in the "${summary.topSellingCategory}" ${catLabel} segment. `;
+    }
+    
+    if (summary.bestPerformingRegion && summary.bestPerformingRegion !== 'N/A') {
+      summaryText += `Geographically, the "${summary.bestPerformingRegion}" ${regLabel} territory acts as the highest-performing operational node in the dataset. `;
+    }
+    
+    summaryText += `The structural reliability of this data configuration remains high, with regular telemetry logs indicating stable operational parameters.`;
+    
+    return summaryText;
   };
 
   // Calculate dynamic Y-axis domain based on exact data spread
@@ -71,34 +87,68 @@ export default function OverviewPage() {
   const primaryAccent = '#22D3EE'; // Cyan
   const colorsList = ['#22D3EE', '#6366F1', '#10B981', '#F59E0B', '#F43F5E'];
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0];
+      const itemName = data.payload?.category 
+        || data.payload?.region 
+        || data.payload?.status 
+        || data.payload?.productName 
+        || data.payload?.customerName
+        || data.payload?.name 
+        || data.name 
+        || label;
+        
+      return (
+        <div className="p-3 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)] shadow-xl flex flex-col gap-1 text-[11px] leading-tight">
+          {itemName && (
+            <span className="font-extrabold text-[var(--text-primary)]">
+              {itemName}
+            </span>
+          )}
+          <span className="font-semibold text-[var(--accent-color)] text-xs">
+            {formatValue(Number(data.value ?? 0))}
+          </span>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <EmptyStateWrapper>
       <div className="shell-container tab-transition max-w-[1700px] mx-auto flex flex-col gap-6">
         
-        {/* Row 1: 4 major KPI cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          
-          {/* Revenue */}
+        {/* Row 1: KPI Statistics Panels */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+          {/* KPI 1: Ingested Total amount */}
           <div className="fintech-card flex flex-col justify-between">
             <div className="flex justify-between items-center mb-3">
-              <span className="metric-label">Total Ingestion Revenue</span>
-              <div className="p-1.5 rounded bg-[var(--accent-glow)] text-[var(--accent-color)] border border-[var(--border-color)]">
+              <span className="metric-label flex items-center gap-1">
+                <span>Total {activeSchema.amount || 'Value'}</span>
+                <span title={`Aggregated sum of all ${activeSchema.amount?.toLowerCase() || 'value'} entries.`}><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-[var(--accent-glow)] flex items-center justify-center text-[var(--accent-color)]">
                 <DollarSign size={14} />
               </div>
             </div>
             <div className="metric-value">
-              {loading.summary ? '...' : formatCurrency(summary?.totalRevenue || 0)}
+              {loading.summary ? '...' : formatValue(summary?.totalRevenue || 0)}
             </div>
             <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
-              Consolidated revenue stream
+              Gross sum metrics
             </p>
           </div>
 
-          {/* Orders */}
+          {/* KPI 2: Total Records */}
           <div className="fintech-card flex flex-col justify-between">
             <div className="flex justify-between items-center mb-3">
-              <span className="metric-label">Transaction Orders</span>
-              <div className="p-1.5 rounded bg-[var(--accent-glow)] text-[var(--accent-color)] border border-[var(--border-color)]">
+              <span className="metric-label flex items-center gap-1">
+                <span>Inflow Records</span>
+                <span title="Total quantity of parsed spreadsheet rows (lines)."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
                 <ShoppingBag size={14} />
               </div>
             </div>
@@ -106,15 +156,37 @@ export default function OverviewPage() {
               {loading.summary ? '...' : formatNumber(summary?.totalOrders || 0)}
             </div>
             <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
-              Total transaction counts
+              Total transaction rows
             </p>
           </div>
 
-          {/* Customers */}
+          {/* KPI 3: Inflow Mean Average */}
           <div className="fintech-card flex flex-col justify-between">
             <div className="flex justify-between items-center mb-3">
-              <span className="metric-label">Active Customer Pool</span>
-              <div className="p-1.5 rounded bg-[var(--accent-glow)] text-[var(--accent-color)] border border-[var(--border-color)]">
+              <span className="metric-label flex items-center gap-1">
+                <span>Mean Value</span>
+                <span title="Average value per parsed data record row."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                <TrendingUp size={14} />
+              </div>
+            </div>
+            <div className="metric-value">
+              {loading.summary ? '...' : formatValue(summary?.totalRevenue && summary?.totalOrders ? summary.totalRevenue / summary.totalOrders : 0)}
+            </div>
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
+              Calculated mathematical mean
+            </p>
+          </div>
+
+          {/* KPI 4: Inflow unique customer density */}
+          <div className="fintech-card flex flex-col justify-between">
+            <div className="flex justify-between items-center mb-3">
+              <span className="metric-label flex items-center gap-1">
+                <span>Unique {activeSchema.customerName || 'Clients'}</span>
+                <span title={`Count of distinct items under ${activeSchema.customerName || 'customer'} tags.`}><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
                 <Users size={14} />
               </div>
             </div>
@@ -122,25 +194,10 @@ export default function OverviewPage() {
               {loading.summary ? '...' : formatNumber(summary?.totalCustomers || 0)}
             </div>
             <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
-              Unique customer accounts
+              Distinct entities pool
             </p>
           </div>
 
-          {/* Growth % */}
-          <div className="fintech-card flex flex-col justify-between">
-            <div className="flex justify-between items-center mb-3">
-              <span className="metric-label">Estimated Growth</span>
-              <div className="p-1.5 rounded bg-[var(--accent-glow)] text-[var(--accent-color)] border border-[var(--border-color)]">
-                <TrendingUp size={14} />
-              </div>
-            </div>
-            <div className="metric-value text-emerald-500 font-bold flex items-center gap-1">
-              +12.4%
-            </div>
-            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-medium">
-              Projected expansion index
-            </p>
-          </div>
         </div>
 
         {/* Row 2: Executive Summary Panel & Insights */}
@@ -188,8 +245,8 @@ export default function OverviewPage() {
           {/* Left: Revenue Trend Chart (50% width - col-span-6) */}
           <div className="xl:col-span-6 fintech-card h-[340px] flex flex-col">
             <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
-              <span>Ingestion Revenue trend</span>
-              <span title="Shows monthly or daily aggregate revenue patterns from active spreadsheets."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+              <span>{activeSchema.amount || 'Value'} Ingestion trend</span>
+              <span title="Shows monthly or daily aggregate values from active spreadsheets."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
             </h4>
             <div className="flex-1 w-full min-h-0 text-xs">
               <ResponsiveContainer width="100%" height="100%">
@@ -204,13 +261,10 @@ export default function OverviewPage() {
                   <YAxis 
                     stroke="var(--text-secondary)" 
                     fontSize={9} 
-                    tickFormatter={(v) => `$${v.toLocaleString()}`}
+                    tickFormatter={(v) => formatValue(v)}
                     domain={yDomain}
                   />
-                  <Tooltip 
-                    contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-                    formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                   <Area 
                     type="monotone" 
                     dataKey="revenue" 
@@ -228,7 +282,7 @@ export default function OverviewPage() {
                         offset={10} 
                         fontSize={8} 
                         fill="var(--text-secondary)" 
-                        formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                        formatter={(v: any) => typeof v === 'number' ? formatValue(v) : v}
                       />
                     )}
                   </Area>
@@ -240,18 +294,15 @@ export default function OverviewPage() {
           {/* Center: Regional Comparison (25% width - col-span-3) */}
           <div className="xl:col-span-3 fintech-card h-[340px] flex flex-col">
             <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
-              <span>Regional Revenue Rank</span>
-              <span title="Compares total gross sales revenue segmented by operating territories."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+              <span>{activeSchema.region || 'Region'} Share Rank</span>
+              <span title="Compares total values segmented by operating locations."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
             </h4>
             <div className="flex-1 w-full min-h-0 text-xs">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={charts?.salesByRegion || []} layout="vertical">
-                  <XAxis type="number" stroke="var(--text-secondary)" fontSize={9} tickFormatter={(v) => `$${v.toLocaleString()}`} />
+                  <XAxis type="number" stroke="var(--text-secondary)" fontSize={9} tickFormatter={(v) => formatValue(v)} />
                   <YAxis type="category" dataKey="region" stroke="var(--text-secondary)" fontSize={9} />
-                  <Tooltip 
-                    contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-                    formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="value" fill={primaryAccent} radius={[0, 4, 4, 0]} onClick={(data: any) => data && setRegionFilter(data.region)}>
                     {(charts?.salesByRegion || []).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
@@ -263,7 +314,7 @@ export default function OverviewPage() {
                         offset={8} 
                         fontSize={8} 
                         fill="var(--text-secondary)" 
-                        formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                        formatter={(v: any) => typeof v === 'number' ? formatValue(v) : v}
                       />
                     )}
                   </Bar>
@@ -275,8 +326,8 @@ export default function OverviewPage() {
           {/* Right: Category Breakdown (25% width - col-span-3) */}
           <div className="xl:col-span-3 fintech-card h-[340px] flex flex-col">
             <h4 className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1">
-              <span>Category volume share</span>
-              <span title="Pie breakdown visualizing product categories sorted by share size."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
+              <span>{activeSchema.category || 'Category'} Volume Share</span>
+              <span title="Pie breakdown visualizing categories sorted by share size."><HelpCircle size={10} className="opacity-60 cursor-help" /></span>
             </h4>
             <div className="flex-1 w-full min-h-0 text-xs relative flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
@@ -297,10 +348,7 @@ export default function OverviewPage() {
                       <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-                    formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

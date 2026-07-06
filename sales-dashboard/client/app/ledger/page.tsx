@@ -14,7 +14,8 @@ const formatCurrency = (val: number) =>
 export default function LedgerPage() {
   const { 
     transactionsResponse, loading, errors, pagination, 
-    sorting, setSorting, setPage, setLimit, filters 
+    sorting, setSorting, setPage, setLimit, filters,
+    activeSchema, formatValue 
   } = useDashboardContext();
 
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export default function LedgerPage() {
         <div className="fintech-card flex flex-col gap-4">
           <div className="flex justify-between items-center pb-3 border-b border-[var(--border-color)]">
             <div>
-              <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Transaction Ledger</h3>
+              <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Data Ledger</h3>
               <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Full-width transaction ledger with expandable rows
               </p>
@@ -65,25 +66,25 @@ export default function LedgerPage() {
             <table className="w-full text-left border-collapse text-xs">
               <thead className="sticky top-0 bg-[var(--surface-color)] z-10">
                 <tr className="bg-[var(--bg-color)] border-b border-[var(--border-color)]">
-                  <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide">Customer</th>
-                  <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide">Product</th>
-                  <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide">Category</th>
-                  <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide">Region</th>
+                  <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide">{activeSchema.customerName || 'Customer'}</th>
+                  <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide">{activeSchema.productName || 'Product'}</th>
+                  <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide">{activeSchema.category || 'Category'}</th>
+                  <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide">{activeSchema.region || 'Region'}</th>
                   <th 
                     onClick={() => handleSortToggle('amount')}
                     className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide cursor-pointer hover:text-[var(--text-primary)] select-none transition"
                   >
                     <div className="flex items-center gap-1">
-                      Revenue {getSortIcon('amount')}
+                      {activeSchema.amount || 'Value'} {getSortIcon('amount')}
                     </div>
                   </th>
-                  <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide">Status</th>
+                  <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide">{activeSchema.status || 'Status'}</th>
                   <th 
                     onClick={() => handleSortToggle('transactionDate')}
                     className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide cursor-pointer hover:text-[var(--text-primary)] select-none transition"
                   >
                     <div className="flex items-center gap-1">
-                      Date {getSortIcon('transactionDate')}
+                      {activeSchema.transactionDate || 'Date'} {getSortIcon('transactionDate')}
                     </div>
                   </th>
                   <th className="py-3.5 px-4 font-bold text-[var(--text-secondary)] uppercase tracking-wide text-center">Inspect</th>
@@ -123,14 +124,10 @@ export default function LedgerPage() {
                           <td className="py-3.5 px-4 text-[var(--text-secondary)] font-medium">{tx.category}</td>
                           <td className="py-3.5 px-4 text-[var(--text-secondary)] font-medium">{tx.region}</td>
                           <td className="py-3.5 px-4 font-extrabold text-[var(--text-primary)]">
-                            {formatCurrency(Number(tx.amount))}
+                            {formatValue(Number(tx.amount))}
                           </td>
                           <td className="py-3.5 px-4 font-semibold">
-                            <span className={`px-2 py-0.5 rounded text-[9px] uppercase tracking-wide ${
-                              tx.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500' :
-                              tx.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' :
-                              'bg-red-500/10 text-red-500'
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded text-[9px] uppercase tracking-wide bg-[var(--accent-glow)] text-[var(--accent-color)] border border-[var(--accent-color)]/10`}>
                               {tx.status}
                             </span>
                           </td>
@@ -150,7 +147,7 @@ export default function LedgerPage() {
                             <td colSpan={8} className="py-4 px-6">
                               <div className="p-4 rounded-xl bg-[var(--surface-color)] border border-[var(--border-color)] shadow-inner grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="flex flex-col gap-1">
-                                  <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">Transaction UID</span>
+                                  <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">Record UID</span>
                                   <span className="font-mono text-xs text-[var(--text-primary)] break-all">{tx.id}</span>
                                 </div>
                                 <div className="flex flex-col gap-1">
@@ -160,7 +157,7 @@ export default function LedgerPage() {
                                   </span>
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                  <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">Product Item</span>
+                                  <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">{activeSchema.productName || 'Product'} Item</span>
                                   <span className="text-xs text-[var(--text-primary)]">{tx.productName}</span>
                                 </div>
                               </div>
