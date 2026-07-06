@@ -70,7 +70,7 @@ export const NavigationRail: React.FC = () => {
             </div>
             {!isSidebarCollapsed && (
               <span className="text-[12px] font-bold uppercase tracking-wider text-[var(--text-primary)] transition-opacity duration-200">
-                Auro Analytics
+                Apex Analytics
               </span>
             )}
           </div>
