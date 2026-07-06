@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, Legend
+  CartesianGrid, Legend, LabelList
 } from 'recharts';
 import { LineChart, Sparkles, TrendingUp, HelpCircle, Layers } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
@@ -244,8 +244,48 @@ export default function ForecastPage() {
                         <Area type="monotone" dataKey="lowerBound" stroke="none" fill="#F43F5E" fillOpacity={0.03} name="Lower Boundary" />
                         
                         {/* Main Lines */}
-                        <Area type="monotone" dataKey="historical" stroke="#6366F1" strokeWidth={1.5} fill="none" name="Historical Sales" />
-                        <Area type="monotone" dataKey="forecast" stroke="#22D3EE" strokeWidth={1.5} fill="none" name="Statistical Forecast" />
+                        <Area 
+                          type="monotone" 
+                          dataKey="historical" 
+                          stroke="#6366F1" 
+                          strokeWidth={1.5} 
+                          fill="none" 
+                          name="Historical Sales"
+                          dot={{ r: 3, stroke: '#6366F1', strokeWidth: 1, fill: 'var(--bg-color)' }}
+                          activeDot={{ r: 5, strokeWidth: 0 }}
+                        >
+                          {forecastAnalytics.chartPoints.length <= 15 && (
+                            <LabelList 
+                              dataKey="historical" 
+                              position="top" 
+                              offset={10} 
+                              fontSize={8} 
+                              fill="var(--text-secondary)" 
+                              formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                            />
+                          )}
+                        </Area>
+                        <Area 
+                          type="monotone" 
+                          dataKey="forecast" 
+                          stroke="#22D3EE" 
+                          strokeWidth={1.5} 
+                          fill="none" 
+                          name="Statistical Forecast"
+                          dot={{ r: 3, stroke: '#22D3EE', strokeWidth: 1, fill: 'var(--bg-color)' }}
+                          activeDot={{ r: 5, strokeWidth: 0 }}
+                        >
+                          {forecastAnalytics.chartPoints.length <= 15 && (
+                            <LabelList 
+                              dataKey="forecast" 
+                              position="top" 
+                              offset={10} 
+                              fontSize={8} 
+                              fill="var(--text-secondary)" 
+                              formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                            />
+                          )}
+                        </Area>
                       </AreaChart>
                     </ResponsiveContainer>
                   )}

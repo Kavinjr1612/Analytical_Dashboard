@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  LineChart, Line, CartesianGrid
+  LineChart, Line, CartesianGrid, LabelList
 } from 'recharts';
 import { Users, Award, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
@@ -178,7 +178,25 @@ export default function CustomersPage() {
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                     formatter={(value: any) => [`${value}%`, 'Retention Rate']}
                   />
-                  <Line type="monotone" dataKey="retention" stroke="var(--accent-color)" strokeWidth={1.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="retention" 
+                    stroke="var(--accent-color)" 
+                    strokeWidth={1.5} 
+                    dot={{ r: 3, stroke: 'var(--accent-color)', strokeWidth: 1, fill: 'var(--bg-color)' }} 
+                    activeDot={{ r: 5, strokeWidth: 0 }}
+                  >
+                    {retentionCurve.length <= 15 && (
+                      <LabelList 
+                        dataKey="retention" 
+                        position="top" 
+                        offset={10} 
+                        fontSize={8} 
+                        fill="var(--text-secondary)" 
+                        formatter={(v: any) => `${v}%`}
+                      />
+                    )}
+                  </Line>
                 </LineChart>
               </ResponsiveContainer>
             </div>

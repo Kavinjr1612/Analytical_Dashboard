@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { 
   BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Treemap, AreaChart, Area
+  Treemap, AreaChart, Area, LabelList
 } from 'recharts';
 import { PieChart, Tag, Award, Layers } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
@@ -211,6 +211,16 @@ export default function MarketsPage() {
                     {categoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
                     ))}
+                    {categoryData.length <= 15 && (
+                      <LabelList 
+                        dataKey="value" 
+                        position="top" 
+                        offset={8} 
+                        fontSize={8} 
+                        fill="var(--text-secondary)" 
+                        formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                      />
+                    )}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

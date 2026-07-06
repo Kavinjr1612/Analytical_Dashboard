@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  BarChart, Bar, LineChart, Line, CartesianGrid, Legend
+  BarChart, Bar, LineChart, Line, CartesianGrid, Legend, LabelList
 } from 'recharts';
 import { TrendingUp, DollarSign, Activity, AlertCircle, TrendingDown, HelpCircle } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
@@ -183,8 +183,37 @@ export default function RevenuePage() {
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                     formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke={primaryAccent} strokeWidth={1.5} fillOpacity={1} fill="url(#colorRevenue)" name="Ingested Revenue" />
-                  <Line type="monotone" dataKey="trend" stroke="#F43F5E" strokeWidth={1.5} strokeDasharray="5 5" dot={false} name="Regression Trend" />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke={primaryAccent} 
+                    strokeWidth={1.5} 
+                    fillOpacity={1} 
+                    fill="url(#colorRevenue)" 
+                    name="Ingested Revenue"
+                    dot={{ r: 3, stroke: primaryAccent, strokeWidth: 1, fill: 'var(--bg-color)' }}
+                    activeDot={{ r: 5, strokeWidth: 0 }}
+                  >
+                    {regressionData.length <= 15 && (
+                      <LabelList 
+                        dataKey="revenue" 
+                        position="top" 
+                        offset={10} 
+                        fontSize={8} 
+                        fill="var(--text-secondary)" 
+                        formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                      />
+                    )}
+                  </Area>
+                  <Line 
+                    type="monotone" 
+                    dataKey="trend" 
+                    stroke="#F43F5E" 
+                    strokeWidth={1.5} 
+                    strokeDasharray="5 5" 
+                    dot={false} 
+                    name="Regression Trend" 
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -220,7 +249,18 @@ export default function RevenuePage() {
                       contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                       formatter={(value: any) => [`$${value}`, 'AOV']}
                     />
-                    <Bar dataKey="aov" fill="#6366F1" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="aov" fill="#6366F1" radius={[4, 4, 0, 0]}>
+                      {monthlyAOV.length <= 15 && (
+                        <LabelList 
+                          dataKey="aov" 
+                          position="top" 
+                          offset={8} 
+                          fontSize={8} 
+                          fill="var(--text-secondary)" 
+                          formatter={(v: any) => typeof v === 'number' ? `$${v}` : v}
+                        />
+                      )}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               )}

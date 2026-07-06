@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Cell, PieChart, Pie
+  BarChart, Bar, Cell, PieChart, Pie, LabelList
 } from 'recharts';
 import { DollarSign, ShoppingBag, Users, TrendingUp, ShieldCheck, Award, HelpCircle } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
@@ -211,7 +211,27 @@ export default function OverviewPage() {
                     contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
                     formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke={primaryAccent} strokeWidth={1.5} fillOpacity={1} fill="url(#colorRev)" />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke={primaryAccent} 
+                    strokeWidth={1.5} 
+                    fillOpacity={1} 
+                    fill="url(#colorRev)"
+                    dot={{ r: 3, stroke: primaryAccent, strokeWidth: 1, fill: 'var(--bg-color)' }}
+                    activeDot={{ r: 5, strokeWidth: 0 }}
+                  >
+                    {(charts?.revenueTrend || []).length <= 15 && (
+                      <LabelList 
+                        dataKey="revenue" 
+                        position="top" 
+                        offset={10} 
+                        fontSize={8} 
+                        fill="var(--text-secondary)" 
+                        formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                      />
+                    )}
+                  </Area>
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -236,6 +256,16 @@ export default function OverviewPage() {
                     {(charts?.salesByRegion || []).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
                     ))}
+                    {(charts?.salesByRegion || []).length <= 15 && (
+                      <LabelList 
+                        dataKey="value" 
+                        position="right" 
+                        offset={8} 
+                        fontSize={8} 
+                        fill="var(--text-secondary)" 
+                        formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                      />
+                    )}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

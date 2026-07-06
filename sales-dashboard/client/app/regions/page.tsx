@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { 
   BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, LabelList
 } from 'recharts';
 import { ShieldCheck, MapPin, AlertTriangle, TrendingUp, TrendingDown, HelpCircle } from 'lucide-react';
 import { useDashboardContext } from '../../context/DashboardContext';
@@ -149,6 +149,16 @@ export default function RegionsPage() {
                       {regionData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={colorsList[index % colorsList.length]} cursor="pointer" />
                       ))}
+                      {regionData.length <= 15 && (
+                        <LabelList 
+                          dataKey="value" 
+                          position="top" 
+                          offset={8} 
+                          fontSize={8} 
+                          fill="var(--text-secondary)" 
+                          formatter={(v: any) => typeof v === 'number' ? formatCurrency(v) : v}
+                        />
+                      )}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
