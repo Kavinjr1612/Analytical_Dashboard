@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  Sun, Moon, UploadCloud, Search, Calendar, Database, BookOpen 
+  Sun, Moon, UploadCloud, Download, Search, Calendar, Database, BookOpen 
 } from 'lucide-react';
 import { DashboardProvider, useDashboardContext } from '../context/DashboardContext';
 import { NavigationRail } from './NavigationRail';
@@ -16,7 +16,7 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
   const { 
     theme, toggleTheme, datasets, filters, 
     setDatasetFilter, searchVal, setSearchVal, 
-    setDateRangeFilter, activeSchema 
+    setDateRangeFilter, handleExport, activeSchema 
   } = useDashboardContext();
 
   const isHome = pathname === '/';
@@ -140,12 +140,22 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
               {/* Import CSV Link Button */}
               <Link
                 href="/"
-                className="h-11 inline-flex items-center justify-center gap-2 px-5 text-xs font-semibold text-white bg-[var(--accent-color)] rounded-lg shadow-sm hover:opacity-95 transition active:scale-[0.98] cursor-pointer"
+                className="h-11 inline-flex items-center justify-center gap-2 px-4 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-sm transition active:scale-[0.98] cursor-pointer"
                 title="Upload / Import CSV Dataset"
               >
                 <UploadCloud size={13} />
                 Import CSV
               </Link>
+
+              {/* Export Button */}
+              <button
+                onClick={handleExport}
+                className="h-11 inline-flex items-center justify-center gap-2 px-4 text-xs font-semibold text-white bg-[var(--accent-color)] rounded-lg shadow-sm hover:opacity-95 transition active:scale-[0.98] cursor-pointer"
+                title="Export Data as CSV"
+              >
+                <Download size={13} />
+                Export
+              </button>
             </>
           )}
 
