@@ -13,7 +13,7 @@ export default function SettingsPage() {
   const [dbResetLoading, setDbResetLoading] = useState(false);
 
   const handleClearAll = async () => {
-    if (!window.confirm('WARNING: This will drop ALL database records, schemas, and uploaded datasets. Are you sure you want to proceed?')) {
+    if (!window.confirm('WARNING: This will clear all stored client dataset records. Are you sure you want to proceed?')) {
       return;
     }
     setDbResetLoading(true);
@@ -26,7 +26,7 @@ export default function SettingsPage() {
       setTimeout(() => setDbResetSuccess(false), 3000);
     } catch (e) {
       console.error('Reset failed:', e);
-      alert('Failed to reset database.');
+      alert('Failed to reset dataset storage.');
     } finally {
       setDbResetLoading(false);
     }
@@ -43,7 +43,7 @@ export default function SettingsPage() {
       {dbResetSuccess && (
         <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold flex items-center gap-2">
           <CheckCircle size={14} />
-          Database reset complete. All active transaction telemetry dropped.
+          Client data reset complete. All active transaction telemetry cleared.
         </div>
       )}
 
@@ -52,14 +52,14 @@ export default function SettingsPage() {
         <div>
           <h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">Active Ingested Datasets</h3>
           <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">
-            Switch, review, or delete active database nodes.
+            Review, switch, or delete client dataset nodes.
           </p>
         </div>
 
         <div className="space-y-3.5 mt-2">
           {datasets.length === 0 ? (
             <div className="text-center text-xs text-[var(--text-secondary)] py-8 border border-dashed border-[var(--border-color)] rounded-xl">
-              No datasets found in Supabase database. Upload data on the Intake panel.
+              No datasets found in client storage. Upload data on the Intake panel.
             </div>
           ) : (
             datasets.map((d) => (
@@ -80,7 +80,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => removeDataset(d.id)}
                   className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-secondary)] hover:text-red-500 transition opacity-0 group-hover:opacity-100 cursor-pointer flex-shrink-0"
-                  title="Remove from database"
+                  title="Remove from client storage"
                 >
                   <Trash2 size={13} />
                 </button>
@@ -95,7 +95,7 @@ export default function SettingsPage() {
         <div>
           <h3 className="text-xs font-bold text-red-500 uppercase tracking-wider">Operational Maintenance</h3>
           <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">
-            Reset operations, wipe configurations, and purge databases.
+            Reset operations, wipe configurations, and purge stored data.
           </p>
         </div>
 
@@ -103,7 +103,7 @@ export default function SettingsPage() {
           <div className="flex gap-2">
             <AlertTriangle className="text-red-500 flex-shrink-0" size={16} />
             <div>
-              <p className="text-xs font-bold text-[var(--text-primary)]">Purge Database Records</p>
+              <p className="text-xs font-bold text-[var(--text-primary)]">Purge Client Datasets</p>
               <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">
                 Drops all transaction ledger rows and active dataset references. Action is irreversible.
               </p>
@@ -125,19 +125,19 @@ export default function SettingsPage() {
         <div>
           <h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">System Telemetry Metadata</h3>
           <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">
-            Connection parameters and database configurations.
+            Client execution environment & storage parameters.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div className="p-3 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)]">
-            <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase">Database Node Provider</span>
-            <p className="text-xs font-extrabold text-[var(--text-primary)] mt-1">PostgreSQL (Supabase Cloud)</p>
+            <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase">Data Engine Mode</span>
+            <p className="text-xs font-extrabold text-[var(--text-primary)] mt-1">Client-Side High-Performance Engine</p>
           </div>
           <div className="p-3 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)]">
-            <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase">Secure Protocol</span>
+            <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase">Storage Node</span>
             <p className="text-xs font-extrabold text-emerald-500 mt-1 flex items-center gap-0.5">
-              <ShieldCheck size={13} /> SSL SECURE CONNECTION
+              <ShieldCheck size={13} /> Browser Storage (IndexedDB / LocalStorage)
             </p>
           </div>
         </div>
