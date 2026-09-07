@@ -25,85 +25,13 @@ function generateUUID(): string {
   });
 }
 
-// Generate realistic initial seed dataset if client storage is empty
-function createDefaultSeedData(): { dataset: Dataset; transactions: ExtendedTransaction[] } {
-  const datasetId = 'default-sample-dataset-uuid';
-  const defaultDataset: Dataset = {
-    id: datasetId,
-    name: 'Sample Enterprise Sales Dataset',
-    importedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    rowCount: 350
-  };
-
-  const categories = ['Cloud Services', 'Hardware', 'Software Subscriptions', 'Consulting', 'Cybersecurity'];
-  const regions = ['North America', 'Europe', 'Asia Pacific', 'Latin America', 'Middle East'];
-  const statuses: ('Completed' | 'Pending' | 'Cancelled')[] = ['Completed', 'Completed', 'Completed', 'Completed', 'Pending', 'Cancelled'];
-  
-  const customers = [
-    'Acme Corp', 'Global Logistics Inc', 'Apex Technologies', 'Nexus Health', 'Starlight Media',
-    'Vanguard Systems', 'Hyperion Dynamics', 'Pulse Financial', 'Horizon Cloud', 'Quantum Retail',
-    'Zenith Robotics', 'Summit Energy', 'BioHealth Labs', 'Titan Software', 'Beacon Security',
-    'Atlas Mobility', 'Pinnacle Capital', 'Vector Manufacturing', 'Omni Interactive', 'Echo Telecom'
-  ];
-
-  const products: Record<string, string[]> = {
-    'Cloud Services': ['AWS Enterprise Node', 'Azure Hybrid Cluster', 'Cloudflare CDN Enterprise', 'Google Cloud Compute'],
-    'Hardware': ['Dell PowerEdge R750', 'Cisco Catalyst 9300', 'Apple MacBook Pro M3', 'HP Enterprise Storage Unit'],
-    'Software Subscriptions': ['Salesforce Enterprise License', 'Jira Software Premium', 'Slack Enterprise Grid', 'Office 365 E5'],
-    'Consulting': ['Security Audit & Compliance', 'Cloud Migration Strategy', 'Data Engineering Sprint', 'AI Implementation Workshop'],
-    'Cybersecurity': ['Palo Alto Next-Gen Firewall', 'CrowdStrike Falcon Suite', 'Okta Identity Cloud', 'Splunk Enterprise SIEM']
-  };
-
-  const transactions: ExtendedTransaction[] = [];
-  const now = new Date();
-
-  for (let i = 0; i < 350; i++) {
-    const cat = categories[i % categories.length];
-    const reg = regions[(i * 3) % regions.length];
-    const status = statuses[(i * 7) % statuses.length];
-    const cust = customers[i % customers.length];
-    const prodList = products[cat];
-    const prod = prodList[i % prodList.length];
-
-    // Spread dates across the last 12 months
-    const daysAgo = Math.floor(Math.random() * 365);
-    const txDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
-
-    // Base price per category + variation
-    const baseAmounts: Record<string, number> = {
-      'Cloud Services': 3500,
-      'Hardware': 4800,
-      'Software Subscriptions': 1200,
-      'Consulting': 8500,
-      'Cybersecurity': 6200
-    };
-    const variation = (Math.random() * 0.6 + 0.7); // 70% to 130%
-    const amount = Math.round(baseAmounts[cat] * variation * 100) / 100;
-
-    transactions.push({
-      id: generateUUID(),
-      customerName: cust,
-      productName: prod,
-      category: cat,
-      region: reg,
-      amount,
-      status,
-      transactionDate: txDate.toISOString(),
-      datasetId
-    });
-  }
-
-  return { dataset: defaultDataset, transactions };
-}
-
-// In-Memory fallback cache for SSR or when storage is empty
+// In-Memory fallback cache for SSR or client session
 let cachedDatasets: Dataset[] | null = null;
 let cachedTransactions: ExtendedTransaction[] | null = null;
 
 function loadStoredData(): { datasets: Dataset[]; transactions: ExtendedTransaction[] } {
   if (typeof window === 'undefined') {
-    const seed = createDefaultSeedData();
-    return { datasets: [seed.dataset], transactions: seed.transactions };
+    return { datasets: [], transactions: [] };
   }
 
   if (cachedDatasets && cachedTransactions) {
@@ -123,12 +51,10 @@ function loadStoredData(): { datasets: Dataset[]; transactions: ExtendedTransact
     console.error('Error loading client analytics storage:', e);
   }
 
-  // Seed default data if none exists
-  const seed = createDefaultSeedData();
-  cachedDatasets = [seed.dataset];
-  cachedTransactions = seed.transactions;
-  saveStoredData(cachedDatasets, cachedTransactions);
-  return { datasets: cachedDatasets, transactions: cachedTransactions };
+  // Default to empty state (no sample seed dataset)
+  cachedDatasets = [];
+  cachedTransactions = [];
+  return { datasets: [], transactions: [] };
 }
 
 function saveStoredData(datasets: Dataset[], transactions: ExtendedTransaction[]) {
@@ -220,7 +146,6 @@ export async function clientGetSummary(filters: FilterParams): Promise<Dashboard
   const totalOrders = filtered.length;
   const averageOrderValue = Math.round((totalRevenue / totalOrders) * 100) / 100;
 
-  // Find top category
   let topSellingCategory = 'N/A';
   let maxCatVal = -1;
   Object.entries(categoryTotals).forEach(([cat, val]) => {
@@ -230,7 +155,6 @@ export async function clientGetSummary(filters: FilterParams): Promise<Dashboard
     }
   });
 
-  // Find best region
   let bestPerformingRegion = 'N/A';
   let maxRegVal = -1;
   Object.entries(regionTotals).forEach(([reg, val]) => {
@@ -254,7 +178,6 @@ export async function clientGetCharts(filters: FilterParams): Promise<DashboardC
   const { transactions } = loadStoredData();
   const filtered = filterTransactions(transactions, filters);
 
-  // 1. Revenue Trend (Daily vs Monthly)
   let isDaily = false;
   if (filters.startDate && filters.endDate) {
     const start = new Date(filters.startDate).getTime();
@@ -330,7 +253,6 @@ export async function clientGetTransactions(params: any): Promise<{
   const { transactions } = loadStoredData();
   const filtered = filterTransactions(transactions, params);
 
-  // Sorting
   const sorted = [...filtered].sort((a: any, b: any) => {
     let valA = a[sortBy];
     let valB = b[sortBy];
@@ -410,7 +332,6 @@ export async function clientDeleteDataset(id: string): Promise<{ success: boolea
 }
 
 export function clientGetExportUrl(filters: FilterParams): string {
-  // Generate CSV text string and encode into a data URI or Blob URL
   const { transactions } = loadStoredData();
   const filtered = filterTransactions(transactions, filters);
 

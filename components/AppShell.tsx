@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  Sun, Moon, Download, Search, Calendar, Database, BookOpen 
+  Sun, Moon, UploadCloud, Search, Calendar, Database, BookOpen 
 } from 'lucide-react';
 import { DashboardProvider, useDashboardContext } from '../context/DashboardContext';
 import { NavigationRail } from './NavigationRail';
@@ -15,7 +16,7 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
   const { 
     theme, toggleTheme, datasets, filters, 
     setDatasetFilter, searchVal, setSearchVal, 
-    setDateRangeFilter, handleExport, activeSchema 
+    setDateRangeFilter, activeSchema 
   } = useDashboardContext();
 
   const isHome = pathname === '/';
@@ -136,14 +137,15 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
                 Dictionary
               </button>
 
-              {/* Export Button */}
-              <button
-                onClick={handleExport}
+              {/* Import CSV Link Button */}
+              <Link
+                href="/"
                 className="h-11 inline-flex items-center justify-center gap-2 px-5 text-xs font-semibold text-white bg-[var(--accent-color)] rounded-lg shadow-sm hover:opacity-95 transition active:scale-[0.98] cursor-pointer"
+                title="Upload / Import CSV Dataset"
               >
-                <Download size={13} />
-                Export
-              </button>
+                <UploadCloud size={13} />
+                Import CSV
+              </Link>
             </>
           )}
 
@@ -153,7 +155,7 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
             className="h-11 w-11 inline-flex items-center justify-center rounded-lg border border-[var(--border-color)] hover:bg-[rgba(148,163,184,0.04)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
-            {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
           </button>
         </div>
       </div>
@@ -161,48 +163,33 @@ const TopContextBar: React.FC<{ onOpenGlossary: () => void }> = ({ onOpenGlossar
   );
 };
 
-const ShellContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isSidebarCollapsed } = useDashboardContext();
-  const pathname = usePathname();
+export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
 
-  // If on home/upload screen, we do not want sidebar offset on desktop, or wait:
-  // "Sidebar Persistent. Overview, Revenue, Markets... 72px collapsed, 240px expanded."
-  // This means the sidebar is persistent on ALL views. So we keep the offset on all pages!
-  const offsetClass = isSidebarCollapsed 
-    ? 'main-layout-offset-collapsed' 
-    : 'main-layout-offset-expanded';
-
-  return (
-    <div className="min-h-screen bg-[var(--bg-color)] flex flex-col transition-colors">
-      <NavigationRail />
-      
-      {/* Container Offset holding Context Bar and Content canvas */}
-      <div className={`flex-1 flex flex-col ${offsetClass}`}>
-        <TopContextBar onOpenGlossary={() => setIsGlossaryOpen(true)} />
-        
-        <main className="flex-1 flex flex-col pt-4 pb-12">
-          {children}
-        </main>
-
-        <footer className="py-6 border-t border-[var(--border-color)] text-center mt-auto">
-          <p className="text-[11px] text-[var(--text-secondary)]">
-            Analytical Console &copy; {new Date().getFullYear()} Executive Analytics. All rights reserved.
-          </p>
-        </footer>
-      </div>
-
-      {/* Floating Glossary Drawer */}
-      <GlossaryDrawer isOpen={isGlossaryOpen} onClose={() => setIsGlossaryOpen(false)} />
-    </div>
-  );
-};
-
-export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <ErrorBoundary>
       <DashboardProvider>
-        <ShellContent>{children}</ShellContent>
+        <div className="min-h-screen bg-[var(--bg-color)] text-[var(--text-primary)] flex font-sans antialiased selection:bg-[var(--accent-color)] selection:text-white transition-colors">
+          {/* Collapsible / Responsive Navigation Rail */}
+          <NavigationRail />
+
+          {/* Main Workspace Column */}
+          <div className="flex-1 flex flex-col min-w-0">
+            <TopContextBar onOpenGlossary={() => setIsGlossaryOpen(true)} />
+
+            <main className="flex-1 pb-16 px-4 sm:px-6 lg:px-8">
+              {children}
+            </main>
+
+            {/* Global Footer */}
+            <footer className="py-6 border-t border-[var(--border-color)] bg-[var(--surface-color)]/50 text-[10px] font-semibold text-[var(--text-secondary)] text-center tracking-widest uppercase transition-colors">
+              Analytical Console · © 2026 Executive Analytics. All rights reserved.
+            </footer>
+          </div>
+        </div>
+
+        {/* Global Metric Glossary Drawer */}
+        <GlossaryDrawer isOpen={isGlossaryOpen} onClose={() => setIsGlossaryOpen(false)} />
       </DashboardProvider>
     </ErrorBoundary>
   );
