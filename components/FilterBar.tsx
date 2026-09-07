@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Search, RotateCcw, Download, Calendar, X } from 'lucide-react';
+import Link from 'next/link';
+import { Search, RotateCcw, Download, Calendar, X, UploadCloud } from 'lucide-react';
 import { FilterParams } from '../types';
 
 interface FilterBarProps {
@@ -102,9 +103,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <span className="hidden sm:inline">Reset</span>
         </button>
 
+        {/* Import CSV Link Button */}
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 rounded bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1.5 text-[11px] font-bold text-white transition active:scale-95 cursor-pointer shadow-lg shadow-black/30"
+          title="Upload / Import CSV Dataset"
+        >
+          <UploadCloud size={12} />
+          Import Data
+        </Link>
+
+        {/* Export CSV Button */}
         <button
           onClick={handleExport}
           className="flex items-center gap-1.5 rounded bg-[#3b82f6] hover:bg-[#2563eb] px-3.5 py-1.5 text-[11px] font-bold text-white transition active:scale-95 cursor-pointer shadow-lg shadow-black/30 animate-none"
+          title="Download Filtered Results as CSV"
         >
           <Download size={12} />
           Export
